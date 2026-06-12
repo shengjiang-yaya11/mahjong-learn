@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🀄 麻将学习坊 — Mahjong Learning</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f172a;--card:#1e293b;--card2:#334155;--text:#e2e8f0;--text2:#94a3b8;
+  --accent:#38bdf8;--accent2:#818cf8;--green:#4ade80;--red:#f87171;--gold:#fbbf24;
+  --tile-w:64px;--tile-h:88px;--radius:12px;
+}
+body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC','Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{max-width:1200px;margin:0 auto;padding:20px}
+
+/* Header */
+.header{text-align:center;padding:32px 0 24px}
+.header h1{font-size:2.4rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:var(--text2);margin-top:8px;font-size:1rem}
+
+/* Lang Switcher */
+.lang-bar{display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.lang-bar span{color:var(--text2);font-size:0.85rem}
+.lang-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--card2);background:var(--card);color:var(--text2);cursor:pointer;font-size:0.82rem;transition:all .2s;font-family:inherit}
+.lang-btn:hover{border-color:var(--accent);color:var(--accent)}
+.lang-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+
+/* Nav Tabs */
+.nav{display:flex;gap:4px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.nav-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--card2);background:var(--card);color:var(--text2);cursor:pointer;font-size:0.95rem;transition:all .2s;font-family:inherit}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+
+/* Panel */
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--card);border-radius:var(--radius);padding:24px;margin-bottom:16px;border:1px solid var(--card2)}
+
+/* === TILE GALLERY === */
+.tile-section{margin-bottom:28px}
+.tile-section h3{font-size:1.15rem;margin-bottom:14px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.tile-grid{display:flex;flex-wrap:wrap;gap:8px}
+.tile{width:var(--tile-w);height:var(--tile-h);border-radius:6px;background:#fef3c7;border:2px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;transition:all .15s;position:relative;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.tile:hover{transform:translateY(-4px);box-shadow:0 6px 16px rgba(0,0,0,.3);z-index:10}
+.tile.bamboo{color:#166534}
+.tile.char{color:#991b1b}
+.tile.dot{color:#1d4ed8}
+.tile.wind{color:#4b5563}
+.tile.dragon{color:#c2410c}
+.tile .label{position:absolute;bottom:3px;font-size:0.6rem;color:#92400e;white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis}
+.tile.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.3)}
+
+/* === RULES === */
+.rule-block{margin-bottom:20px}
+.rule-block h4{font-size:1.05rem;margin-bottom:8px;color:var(--gold)}
+.rule-block p,.rule-block li{color:var(--text2);line-height:1.7;font-size:0.95rem}
+.rule-block ul{padding-left:20px;margin-top:6px}
+.rule-block li{margin-bottom:4px}
+.highlight{background:rgba(251,191,36,.15);padding:2px 6px;border-radius:4px;font-weight:600;color:var(--gold)}
+
+/* === HAND BUILDER === */
+.builder-area{min-height:200px}
+.hand-zone{border:2px dashed var(--card2);border-radius:var(--radius);padding:16px;min-height:110px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin-bottom:16px}
+.hand-zone-label{font-size:0.8rem;color:var(--text2);text-align:center;margin-bottom:6px}
+.hand-tile{width:52px;height:72px;border-radius:5px;background:#fef3c7;border:2px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:1.25rem;cursor:pointer;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:all .15s}
+.hand-tile:hover{transform:translateY(-3px)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.btn{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-size:0.9rem;font-family:inherit;transition:all .2s;font-weight:500}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{opacity:.85}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{opacity:.85}
+.btn-outline{border:1px solid var(--card2);background:transparent;color:var(--text2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.result-box{padding:14px;border-radius:8px;margin-top:12px;text-align:center;font-weight:600;font-size:1rem}
+.result-win{background:rgba(74,222,128,.15);color:var(--green)}
+.result-lose{background:rgba(248,113,113,.15);color:var(--red)}
+.result-hint{background:rgba(56,189,248,.1);color:var(--accent)}
+
+/* === QUIZ === */
+.quiz-card{text-align:center}
+.quiz-question{font-size:1.2rem;margin-bottom:20px;font-weight:500}
+.quiz-options{display:grid;gap:10px;max-width:500px;margin:0 auto 16px}
+.quiz-option{padding:12px 20px;border-radius:8px;border:2px solid var(--card2);background:var(--card);color:var(--text);cursor:pointer;font-size:0.95rem;transition:all .2s;text-align:left;font-family:inherit}
+.quiz-option:hover{border-color:var(--accent)}
+.quiz-option.correct{border-color:var(--green);background:rgba(74,222,128,.1);color:var(--green)}
+.quiz-option.wrong{border-color:var(--red);background:rgba(248,113,113,.1);color:var(--red)}
+.quiz-score{font-size:1.1rem;margin-top:12px;color:var(--gold)}
+.quiz-feedback{margin-top:12px;font-size:0.95rem;color:var(--text2)}
+
+/* Responsive */
+@media(max-width:768px){
+  :root{--tile-w:48px;--tile-h:66px}
+  .hand-tile{width:44px;height:60px;font-size:1.1rem}
+  .nav-btn{padding:8px 16px;font-size:0.85rem}
+  .header h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h1 data-i18n="appTitle">🀄 麻将学习坊</h1>
+    <p data-i18n="appDesc">零基础入门 · 牌型识别 · 手牌练习 · 趣味测验</p>
+  </div>
+
+  <!-- Language Switcher -->
+  <div class="lang-bar">
+    <span>🌐</span>
+    <button class="lang-btn active" data-lang="zh">中文</button>
+    <button class="lang-btn" data-lang="en">English</button>
+    <button class="lang-btn" data-lang="fr">Français</button>
+    <button class="lang-btn" data-lang="it">Italiano</button>
+    <button class="lang-btn" data-lang="es">Español</button>
+    <button class="lang-btn" data-lang="de">Deutsch</button>
+    <button class="lang-btn" data-lang="ko">한국어</button>
+    <button class="lang-btn" data-lang="ja">日本語</button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <button class="nav-btn active" data-panel="gallery" data-i18n="navGallery">🀫 牌型认知</button>
+    <button class="nav-btn" data-panel="rules" data-i18n="navRules">📖 规则讲解</button>
+    <button class="nav-btn" data-panel="builder" data-i18n="navBuilder">🧩 手牌搭建</button>
+    <button class="nav-btn" data-panel="quiz" data-i18n="navQuiz">🎯 趣味测验</button>
+  </nav>
+
+  <!-- Panel: Gallery -->
+  <div class="panel active" id="panel-gallery">
+    <div class="card">
+      <p style="color:var(--text2);margin-bottom:16px" data-i18n="galleryHint">点击任意麻将牌可查看名称，选中的牌可加入下方的手牌区域进行练习。</p>
+    </div>
+    <div id="gallery-content"></div>
+  </div>
+
+  <!-- Panel: Rules -->
+  <div class="panel" id="panel-rules">
+    <div class="card rule-block">
+      <h4 data-i18n="rulesCompTitle">🀄 麻将基本构成</h4>
+      <div data-i18n="rulesComp"></div>
+    </div>
+    <div class="card rule-block">
+      <h4 data-i18n="rulesWinTitle">🏆 胡牌条件</h4>
+      <div data-i18n="rulesWin"></div>
+    </div>
+    <div class="card rule-block">
+      <h4 data-i18n="rulesFlowTitle">🎲 基本游戏流程</h4>
+      <div data-i18n="rulesFlow"></div>
+    </div>
+    <div class="card rule-block">
+      <h4 data-i18n="rulesActionsTitle">🎯 特殊动作</h4>
+      <div data-i18n="rulesActions"></div>
+    </div>
+    <div class="card rule-block">
+      <h4 data-i18n="rulesFansTitle">📊 番型简介（简版）</h4>
+      <div data-i18n="rulesFans"></div>
+    </div>
+  </div>
+
+  <!-- Panel: Hand Builder -->
+  <div class="panel" id="panel-builder">
+    <div class="card">
+      <p style="color:var(--text2);margin-bottom:12px" data-i18n="builderHint"></p>
+      <div class="hand-zone-label" data-i18n="handZoneLabel">👇 你的手牌（0/14）</div>
+      <div class="hand-zone" id="hand-zone">
+        <span style="color:var(--text2);font-size:0.9rem" id="hand-empty-hint" data-i18n="handEmptyHint">点击下方牌库中的牌来添加手牌 🀫</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="checkWin()" data-i18n="btnCheck">🔍 判定胡牌</button>
+        <button class="btn btn-outline" onclick="sortHand()" data-i18n="btnSort">📐 排序</button>
+        <button class="btn btn-danger" onclick="clearHand()" data-i18n="btnClear">🗑 清空</button>
+      </div>
+      <div id="hand-result"></div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent);margin-bottom:12px" data-i18n="tilePoolTitle">牌库 — 点击选牌</h3>
+      <div id="builder-tile-pool"></div>
+    </div>
+  </div>
+
+  <!-- Panel: Quiz -->
+  <div class="panel" id="panel-quiz">
+    <div class="card quiz-card">
+      <div class="quiz-score" id="quiz-score"></div>
+      <div class="quiz-question" id="quiz-q"></div>
+      <div class="quiz-options" id="quiz-opts"></div>
+      <div class="quiz-feedback" id="quiz-fb"></div>
+      <button class="btn btn-primary" id="quiz-next" style="display:none;margin:12px auto" onclick="nextQuiz()" data-i18n="btnNext">下一题 ▶</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ====== i18n ======
+let currentLang = 'zh';
+
+const I18N = {
+  zh: {
+    appTitle: '🀄 麻将学习坊',
+    appDesc: '零基础入门 · 牌型识别 · 手牌练习 · 趣味测验',
+    navGallery: '🀫 牌型认知',
+    navRules: '📖 规则讲解',
+    navBuilder: '🧩 手牌搭建',
+    navQuiz: '🎯 趣味测验',
+    galleryHint: '点击任意麻将牌可查看名称，选中的牌可加入下方的手牌区域进行练习。',
+    suitWan: '万子 (Characters)',
+    suitTong: '筒子 (Dots)',
+    suitTiao: '条子 (Bamboo)',
+    suitWind: '风牌 (Winds)',
+    suitDragon: '箭牌 (Dragons)',
+    rulesCompTitle: '🀄 麻将基本构成',
+    rulesComp: '<p>标准麻将共 <span class="highlight">136 张</span>牌，分为三大类：</p><ul><li><strong>数牌（108张）</strong>：万子、筒子、条子，各 1~9 × 4</li><li><strong>风牌（16张）</strong>：东、南、西、北，各 4 张</li><li><strong>箭牌（12张）</strong>：中、发、白，各 4 张</li></ul>',
+    rulesWinTitle: '🏆 胡牌条件',
+    rulesWin: '<p>胡牌 = <span class="highlight">4 组面子 + 1 对雀头</span>（共 14 张）</p><p style="margin-top:8px"><strong>面子</strong>有三种类型：</p><ul><li><span class="highlight">顺子 (Chow)</span>：同花色连续三张，如 🀇🀈🀉</li><li><span class="highlight">刻子 (Pung)</span>：完全相同的三张，如 🀀🀀🀀</li><li><span class="highlight">杠子 (Kong)</span>：完全相同的四张，如 🀫🀫🀫🀫</li></ul>',
+    rulesFlowTitle: '🎲 基本游戏流程',
+    rulesFlow: '<ul><li><strong>洗牌 & 码牌</strong>：四人洗牌后每人码 17 墩（共 136 张）</li><li><strong>掷骰定庄</strong>：掷两个骰子确定庄家位置</li><li><strong>起牌</strong>：庄家 14 张，其余三家各 13 张</li><li><strong>行牌</strong>：轮流摸牌 → 打牌，可 <span class="highlight">碰、吃、杠、胡</span></li><li><strong>终局</strong>：有人胡牌或牌墙摸完无人胡牌（荒庄）</li></ul>',
+    rulesActionsTitle: '🎯 特殊动作',
+    rulesActions: '<ul><li><span class="highlight">碰 (Pung)</span>：别人打出与手中一对相同的牌时，可碰成刻子</li><li><span class="highlight">吃 (Chow)</span>：上家打出能与你手中两张组成顺子的牌时，可吃（仅上家）</li><li><span class="highlight">杠 (Kong)</span>：自己摸到第四张相同的牌（暗杠），或别人打出可补成杠（明杠）</li><li><span class="highlight">自摸</span>：自己摸到胡牌所需的最后一张 → 每家付</li><li><span class="highlight">点炮</span>：别人打出你能胡的牌 → 出牌者付</li></ul>',
+    rulesFansTitle: '📊 番型简介（简版）',
+    rulesFans: '<ul><li><span class="highlight">一番</span>：平胡、门前清、自摸、无字、断幺九、老少副</li><li><span class="highlight">两番</span>：对对胡、混一色、七对、全求人</li><li><span class="highlight">三番</span>：清一色、混幺九</li><li><span class="highlight">五番+</span>：小三元、大三元、小四喜、大四喜、十三幺、九莲宝灯</li></ul>',
+    builderHint: '从下方牌库中点击选牌添加到手牌区（最多 14 张），然后点「判定胡牌」验证是否是合法胡牌牌型。',
+    handZoneLabel: '👇 你的手牌（{count}/14）',
+    handEmptyHint: '点击下方牌库中的牌来添加手牌 🀫',
+    btnCheck: '🔍 判定胡牌',
+    btnSort: '📐 排序',
+    btnClear: '🗑 清空',
+    btnNext: '下一题 ▶',
+    tilePoolTitle: '牌库 — 点击选牌',
+    quizScore: '得分：{score} / {total}',
+    quizComplete: '🎉 测验完成！',
+    quizFinalScore: '总分：{score} / {total}',
+    quizCorrect: '✅ 回答正确！',
+    quizWrong: '❌ 回答错误。正确答案已标绿。',
+    handWin: '🎉 恭喜！这是合法的胡牌牌型！',
+    handWinDetail: '4 组面子 + 1 对雀头 ✓',
+    handLose: '❌ 这不是合法的胡牌牌型',
+    handLoseDetail: '需要 4 组面子（顺子/刻子）+ 1 对雀头',
+    handCountError: '❌ 手牌必须是 14 张才能判定！当前 {count} 张',
+    handMaxError: '手牌最多 14 张！',
+    // Tile names
+    tileNames: {
+      '1万':'一万','2万':'二万','3万':'三万','4万':'四万','5万':'五万','6万':'六万','7万':'七万','8万':'八万','9万':'九万',
+      '1筒':'一筒','2筒':'二筒','3筒':'三筒','4筒':'四筒','5筒':'五筒','6筒':'六筒','7筒':'七筒','8筒':'八筒','9筒':'九筒',
+      '1条':'一条','2条':'二条','3条':'三条','4条':'四条','5条':'五条','6条':'六条','7条':'七条','8条':'八条','9条':'九条',
+      '东':'东','南':'南','西':'西','北':'北',
+      '中':'中 (红中)','发':'发 (发财)','白':'白 (白板)',
+    },
+    quiz: [
+      {q:'一副标准麻将共有多少张牌？',o:['108 张','136 张','144 张','120 张'],a:1},
+      {q:'胡牌需要多少张牌？',o:['12 张','13 张','14 张','16 张'],a:2},
+      {q:'以下哪个是合法的面子？',o:['🀇🀈🀉（一万二万三万）','🀀🀁🀂（东南西）','🀇🀙🀐（一万、一筒、一条）','🀄🀅🀄（中发中）'],a:0},
+      {q:'"碰"需要几张相同的牌？',o:['2 张','3 张','4 张','1 张'],a:1},
+      {q:'以下哪个是清一色？',o:['全是风牌和箭牌','全是同一种花色的数牌','7 个对子','123 456 789 同一花色'],a:1},
+      {q:'"吃"只能吃谁的牌？',o:['任意对手','下家','对家','上家'],a:3},
+      {q:'"自摸"是什么意思？',o:['别人点炮','庄家胡牌','自己摸到最后需要的牌胡了','别人帮你胡'],a:2},
+      {q:'以下哪个牌型番数最高？',o:['对对胡','混一色','清一色','大四喜'],a:3},
+      {q:'杠分为哪两种？',o:['明杠和暗杠','大杠和小杠','快杠和慢杠','生杠和熟杠'],a:0},
+      {q:'东风 🀀 属于哪类牌？',o:['数牌','风牌','箭牌','花牌'],a:1},
+    ]
+  },
+  en: {
+    appTitle: '🀄 Mahjong Learning Workshop',
+    appDesc: 'Beginner-Friendly · Tile Recognition · Hand Practice · Fun Quiz',
+    navGallery: '🀫 Tile Gallery',
+    navRules: '📖 Rules',
+    navBuilder: '🧩 Hand Builder',
+    navQuiz: '🎯 Quiz',
+    galleryHint: 'Click any tile to see its name. Selected tiles can be added to the hand builder below.',
+    suitWan: 'Characters (Wan)',
+    suitTong: 'Dots (Tong)',
+    suitTiao: 'Bamboo (Tiao)',
+    suitWind: 'Winds',
+    suitDragon: 'Dragons',
+    rulesCompTitle: '🀄 Mahjong Basics',
+    rulesComp: '<p>A standard mahjong set has <span class="highlight">136 tiles</span>, divided into three categories:</p><ul><li><strong>Suited Tiles (108)</strong>: Characters, Dots, Bamboo — each 1~9 × 4</li><li><strong>Wind Tiles (16)</strong>: East, South, West, North — 4 each</li><li><strong>Dragon Tiles (12)</strong>: Red, Green, White — 4 each</li></ul>',
+    rulesWinTitle: '🏆 Winning Hand',
+    rulesWin: '<p>Winning hand = <span class="highlight">4 melds + 1 pair</span> (14 tiles total)</p><p style="margin-top:8px"><strong>Melds</strong> come in three types:</p><ul><li><span class="highlight">Chow</span>: Three consecutive tiles of the same suit, e.g. 🀇🀈🀉</li><li><span class="highlight">Pung</span>: Three identical tiles, e.g. 🀀🀀🀀</li><li><span class="highlight">Kong</span>: Four identical tiles, e.g. 🀫🀫🀫🀫</li></ul>',
+    rulesFlowTitle: '🎲 Game Flow',
+    rulesFlow: '<ul><li><strong>Shuffle & Build Wall</strong>: 4 players shuffle and each builds 17 stacks (136 tiles)</li><li><strong>Roll Dice for Dealer</strong>: Roll two dice to determine dealer position</li><li><strong>Draw</strong>: Dealer draws 14 tiles; others draw 13 each</li><li><strong>Play</strong>: Take turns drawing → discarding; can <span class="highlight">Pung, Chow, Kong, or Win</span></li><li><strong>End</strong>: Someone wins or all tiles are drawn with no winner (draw game)</li></ul>',
+    rulesActionsTitle: '🎯 Special Actions',
+    rulesActions: '<ul><li><span class="highlight">Pung</span>: Claim a discard to form a triplet with your pair</li><li><span class="highlight">Chow</span>: Claim the previous player\'s discard to complete a sequence (previous player only)</li><li><span class="highlight">Kong</span>: Add a 4th identical tile (concealed kong) or claim a discard (exposed kong)</li><li><span class="highlight">Self-Draw (Tsumo)</span>: Draw your winning tile yourself → everyone pays</li><li><span class="highlight">Discard Win (Ron)</span>: Win on another player\'s discard → discarder pays</li></ul>',
+    rulesFansTitle: '📊 Scoring Hands (Simplified)',
+    rulesFans: '<ul><li><span class="highlight">1 Fan</span>: All Chows, Fully Concealed, Self-Draw, No Honors, All Simples</li><li><span class="highlight">2 Fan</span>: All Pungs, Half Flush, Seven Pairs, All Revealed</li><li><span class="highlight">3 Fan</span>: Full Flush, Mixed Terminal Honors</li><li><span class="highlight">5+ Fan</span>: Little Three Dragons, Big Three Dragons, Little Four Winds, Big Four Winds, Thirteen Orphans, Nine Gates</li></ul>',
+    builderHint: 'Click tiles from the pool below to add to your hand (max 14), then click "Check Win" to verify.',
+    handZoneLabel: '👇 Your Hand ({count}/14)',
+    handEmptyHint: 'Click tiles from the pool to build your hand 🀫',
+    btnCheck: '🔍 Check Win',
+    btnSort: '📐 Sort',
+    btnClear: '🗑 Clear',
+    btnNext: 'Next ▶',
+    tilePoolTitle: 'Tile Pool — Click to Select',
+    quizScore: 'Score: {score} / {total}',
+    quizComplete: '🎉 Quiz Complete!',
+    quizFinalScore: 'Total: {score} / {total}',
+    quizCorrect: '✅ Correct!',
+    quizWrong: '❌ Wrong. Correct answer highlighted in green.',
+    handWin: '🎉 Congratulations! Valid winning hand!',
+    handWinDetail: '4 melds + 1 pair ✓',
+    handLose: '❌ Not a valid winning hand',
+    handLoseDetail: 'Need 4 melds (chow/pung) + 1 pair',
+    handCountError: '❌ Hand must have exactly 14 tiles! Currently {count}',
+    handMaxError: 'Hand cannot exceed 14 tiles!',
+    tileNames: {
+      '1万':'1 Wan','2万':'2 Wan','3万':'3 Wan','4万':'4 Wan','5万':'5 Wan','6万':'6 Wan','7万':'7 Wan','8万':'8 Wan','9万':'9 Wan',
+      '1筒':'1 Dot','2筒':'2 Dot','3筒':'3 Dot','4筒':'4 Dot','5筒':'5 Dot','6筒':'6 Dot','7筒':'7 Dot','8筒':'8 Dot','9筒':'9 Dot',
+      '1条':'1 Bamboo','2条':'2 Bamboo','3条':'3 Bamboo','4条':'4 Bamboo','5条':'5 Bamboo','6条':'6 Bamboo','7条':'7 Bamboo','8条':'8 Bamboo','9条':'9 Bamboo',
+      '东':'East','南':'South','西':'West','北':'North',
+      '中':'Red Dragon','发':'Green Dragon','白':'White Dragon',
+    },
+    quiz: [
+      {q:'How many tiles in a standard mahjong set?',o:['108','136','144','120'],a:1},
+      {q:'How many tiles for a winning hand?',o:['12','13','14','16'],a:2},
+      {q:'Which is a valid meld?',o:['🀇🀈🀉 (1-2-3 Wan)','🀀🀁🀂 (E-S-W)','🀇🀙🀐 (Wan-Dot-Bamboo)','🀄🀅🀄 (Red-Green-Red)'],a:0},
+      {q:'How many identical tiles needed for Pung?',o:['2 tiles','3 tiles','4 tiles','1 tile'],a:1},
+      {q:'What is a Full Flush?',o:['All wind and dragon tiles','All tiles of a single suit','7 pairs','A special sequence'],a:1},
+      {q:'Chow can only claim from whose discard?',o:['Any opponent','The player to your right','The player opposite','The player to your left (previous)'],a:3},
+      {q:'What does "Self-Draw (Tsumo)" mean?',o:['Winning on a discard','Dealer winning','Drawing your winning tile yourself','Someone helps you win'],a:2},
+      {q:'Which hand scores highest?',o:['All Pungs','Half Flush','Full Flush','Big Four Winds'],a:3},
+      {q:'What are the two types of Kong?',o:['Exposed and Concealed','Big and Small','Fast and Slow','Raw and Cooked'],a:0},
+      {q:'What category is East Wind 🀀?',o:['Suited tile','Wind tile','Dragon tile','Flower tile'],a:1},
+    ]
+  },
+  fr: {
+    appTitle: '🀄 Atelier Mahjong',
+    appDesc: 'Pour Débutants · Tuiles · Pratique · Quiz',
+    navGallery: '🀫 Galerie',
+    navRules: '📖 Règles',
+    navBuilder: '🧩 Construction',
+    navQuiz: '🎯 Quiz',
+    galleryHint: 'Cliquez sur une tuile pour voir son nom.',
+    suitWan: 'Caractères (Wan)',
+    suitTong: 'Cercles (Tong)',
+    suitTiao: 'Bambous (Tiao)',
+    suitWind: 'Vents',
+    suitDragon: 'Dragons',
+    rulesCompTitle: '🀄 Bases du Mahjong',
+    rulesComp: '<p>Un jeu standard contient <span class="highlight">136 tuiles</span> en trois catégories :</p><ul><li><strong>Tuiles numérales (108)</strong> : Caractères, Cercles, Bambous — 1~9 × 4 chacun</li><li><strong>Vents (16)</strong> : Est, Sud, Ouest, Nord — 4 chacun</li><li><strong>Dragons (12)</strong> : Rouge, Vert, Blanc — 4 chacun</li></ul>',
+    rulesWinTitle: '🏆 Main Gagnante',
+    rulesWin: '<p>Main gagnante = <span class="highlight">4 combinaisons + 1 paire</span> (14 tuiles)</p><p style="margin-top:8px">Trois types de <strong>combinaisons</strong> :</p><ul><li><span class="highlight">Suite (Chow)</span> : Trois tuiles consécutives même couleur</li><li><span class="highlight">Brelan (Pung)</span> : Trois tuiles identiques</li><li><span class="highlight">Carré (Kong)</span> : Quatre tuiles identiques</li></ul>',
+    rulesFlowTitle: '🎲 Déroulement',
+    rulesFlow: '<ul><li><strong>Mélange & Mur</strong> : Chaque joueur construit 17 piles</li><li><strong>Dés</strong> : Deux dés déterminent le donneur</li><li><strong>Pioche</strong> : Donneur 14 tuiles, autres 13</li><li><strong>Jeu</strong> : Piocher → jeter ; <span class="highlight">Pung, Chow, Kong, ou Mahjong</span></li><li><strong>Fin</strong> : Quelqu\'un gagne ou mur épuisé (match nul)</li></ul>',
+    rulesActionsTitle: '🎯 Actions Spéciales',
+    rulesActions: '<ul><li><span class="highlight">Pung</span> : Réclamer un rejet pour former un brelan</li><li><span class="highlight">Chow</span> : Réclamer le rejet du joueur précédent pour une suite</li><li><span class="highlight">Kong</span> : Ajouter une 4ᵉ tuile identique (caché ou exposé)</li><li><span class="highlight">Tsumo</span> : Piocher sa tuile gagnante soi-même</li><li><span class="highlight">Ron</span> : Gagner sur le rejet d\'un autre joueur</li></ul>',
+    rulesFansTitle: '📊 Mains (Simplifié)',
+    rulesFans: '<ul><li><span class="highlight">1 Fan</span> : Tout Suite, Main Cachée, Tsumo, Sans Honneur</li><li><span class="highlight">2 Fan</span> : Tout Brelan, Semi-Pure, Sept Paires</li><li><span class="highlight">3 Fan</span> : Pure, Honneurs Mixtes</li><li><span class="highlight">5+ Fan</span> : Petits/Grands Dragons, Petits/Grands Vents, Treize Orphelins</li></ul>',
+    builderHint: 'Cliquez sur les tuiles pour construire votre main (max 14), puis "Vérifier".',
+    handZoneLabel: '👇 Votre Main ({count}/14)',
+    handEmptyHint: 'Cliquez sur les tuiles pour construire votre main 🀫',
+    btnCheck: '🔍 Vérifier',
+    btnSort: '📐 Trier',
+    btnClear: '🗑 Effacer',
+    btnNext: 'Suivant ▶',
+    tilePoolTitle: 'Tuiles — Cliquez pour Sélectionner',
+    quizScore: 'Score : {score} / {total}',
+    quizComplete: '🎉 Quiz Terminé !',
+    quizFinalScore: 'Total : {score} / {total}',
+    quizCorrect: '✅ Correct !',
+    quizWrong: '❌ Faux. La bonne réponse est en vert.',
+    handWin: '🎉 Félicitations ! Main gagnante valide !',
+    handWinDetail: '4 combinaisons + 1 paire ✓',
+    handLose: '❌ Main non valide',
+    handLoseDetail: 'Il faut 4 combinaisons + 1 paire',
+    handCountError: '❌ Il faut exactement 14 tuiles ! Actuellement {count}',
+    handMaxError: 'Maximum 14 tuiles !',
+    tileNames: {
+      '1万':'1 Caractère','2万':'2 Caractère','3万':'3 Caractère','4万':'4 Caractère','5万':'5 Caractère','6万':'6 Caractère','7万':'7 Caractère','8万':'8 Caractère','9万':'9 Caractère',
+      '1筒':'1 Cercle','2筒':'2 Cercle','3筒':'3 Cercle','4筒':'4 Cercle','5筒':'5 Cercle','6筒':'6 Cercle','7筒':'7 Cercle','8筒':'8 Cercle','9筒':'9 Cercle',
+      '1条':'1 Bambou','2条':'2 Bambou','3条':'3 Bambou','4条':'4 Bambou','5条':'5 Bambou','6条':'6 Bambou','7条':'7 Bambou','8条':'8 Bambou','9条':'9 Bambou',
+      '东':'Est','南':'Sud','西':'Ouest','北':'Nord',
+      '中':'Dragon Rouge','发':'Dragon Vert','白':'Dragon Blanc',
+    },
+    quiz: [
+      {q:'Combien de tuiles dans un jeu standard ?',o:['108','136','144','120'],a:1},
+      {q:'Combien de tuiles pour une main gagnante ?',o:['12','13','14','16'],a:2},
+      {q:'Laquelle est une combinaison valide ?',o:['🀇🀈🀉 (1-2-3 Wan)','🀀🀁🀂 (E-S-W)','🀇🀙🀐 (mixte)','🀄🀅🀄 (R-V-R)'],a:0},
+      {q:'Combien de tuiles pour un Pung ?',o:['2','3','4','1'],a:1},
+      {q:'Qu\'est-ce qu\'une Main Pure ?',o:['Tous vents et dragons','Une seule couleur','7 paires','Une séquence spéciale'],a:1},
+      {q:'Chow : de qui peut-on réclamer ?',o:['N\'importe qui','À droite','En face','À gauche (précédent)'],a:3},
+      {q:'Que signifie "Tsumo" ?',o:['Gagner sur un rejet','Le donneur gagne','Piocher sa tuile gagnante','Aide extérieure'],a:2},
+      {q:'Quelle main vaut le plus ?',o:['Tout Brelan','Semi-Pure','Pure','Grands Quatre Vents'],a:3},
+      {q:'Les deux types de Kong ?',o:['Exposé et Caché','Grand et Petit','Rapide et Lent','Cru et Cuit'],a:0},
+      {q:'Le Vent d\'Est 🀀 est ?',o:['Tuile numérale','Vent','Dragon','Fleur'],a:1},
+    ]
+  },
+  it: {
+    appTitle: '🀄 Laboratorio Mahjong',
+    appDesc: 'Per Principianti · Tessere · Pratica · Quiz',
+    navGallery: '🀫 Galleria',
+    navRules: '📖 Regole',
+    navBuilder: '🧩 Costruttore',
+    navQuiz: '🎯 Quiz',
+    galleryHint: 'Clicca su una tessera per vedere il nome.',
+    suitWan: 'Caratteri (Wan)',
+    suitTong: 'Cerchi (Tong)',
+    suitTiao: 'Bambù (Tiao)',
+    suitWind: 'Venti',
+    suitDragon: 'Draghi',
+    rulesCompTitle: '🀄 Basi del Mahjong',
+    rulesComp: '<p>Un set standard ha <span class="highlight">136 tessere</span> in tre categorie:</p><ul><li><strong>Tessere numerali (108)</strong>: Caratteri, Cerchi, Bambù — 1~9 × 4</li><li><strong>Venti (16)</strong>: Est, Sud, Ovest, Nord — 4 ciascuno</li><li><strong>Draghi (12)</strong>: Rosso, Verde, Bianco — 4 ciascuno</li></ul>',
+    rulesWinTitle: '🏆 Mano Vincente',
+    rulesWin: '<p>Mano vincente = <span class="highlight">4 combinazioni + 1 coppia</span> (14 tessere)</p><p style="margin-top:8px">Tre tipi di <strong>combinazioni</strong>:</p><ul><li><span class="highlight">Scala (Chow)</span>: Tre consecutive stesso seme</li><li><span class="highlight">Tris (Pung)</span>: Tre identiche</li><li><span class="highlight">Poker (Kong)</span>: Quattro identiche</li></ul>',
+    rulesFlowTitle: '🎲 Svolgimento',
+    rulesFlow: '<ul><li><strong>Mescolare & Muro</strong>: Ogni giocatore fa 17 pile</li><li><strong>Dadi</strong>: Due dadi determinano il mazziere</li><li><strong>Pescare</strong>: Mazziere 14, altri 13 tessere</li><li><strong>Gioco</strong>: Pescare → scartare; <span class="highlight">Pung, Chow, Kong, o Mahjong</span></li><li><strong>Fine</strong>: Qualcuno vince o muro esaurito</li></ul>',
+    rulesActionsTitle: '🎯 Azioni Speciali',
+    rulesActions: '<ul><li><span class="highlight">Pung</span>: Reclamare uno scarto per fare tris</li><li><span class="highlight">Chow</span>: Reclamare scarto del giocatore precedente per scala</li><li><span class="highlight">Kong</span>: Aggiungere 4ª tessera (nascosto o esposto)</li><li><span class="highlight">Tsumo</span>: Pescare la tessera vincente da soli</li><li><span class="highlight">Ron</span>: Vincere sullo scarto di un altro</li></ul>',
+    rulesFansTitle: '📊 Punteggi (Semplificato)',
+    rulesFans: '<ul><li><span class="highlight">1 Fan</span>: Tutto Scale, Mano Nascosta, Tsumo</li><li><span class="highlight">2 Fan</span>: Tutto Tris, Mezzo Flush, Sette Coppie</li><li><span class="highlight">3 Fan</span>: Colore Puro, Onori Misti</li><li><span class="highlight">5+ Fan</span>: Piccoli/Grandi Draghi, Piccoli/Grandi Venti, Tredici Orfani</li></ul>',
+    builderHint: 'Clicca sulle tessere per costruire la mano (max 14), poi "Verifica".',
+    handZoneLabel: '👇 La Tua Mano ({count}/14)',
+    handEmptyHint: 'Clicca sulle tessere per costruire la mano 🀫',
+    btnCheck: '🔍 Verifica',
+    btnSort: '📐 Ordina',
+    btnClear: '🗑 Cancella',
+    btnNext: 'Prossimo ▶',
+    tilePoolTitle: 'Tessere — Clicca per Selezionare',
+    quizScore: 'Punteggio: {score} / {total}',
+    quizComplete: '🎉 Quiz Completato!',
+    quizFinalScore: 'Totale: {score} / {total}',
+    quizCorrect: '✅ Corretto!',
+    quizWrong: '❌ Sbagliato. Risposta corretta in verde.',
+    handWin: '🎉 Congratulazioni! Mano vincente valida!',
+    handWinDetail: '4 combinazioni + 1 coppia ✓',
+    handLose: '❌ Mano non valida',
+    handLoseDetail: 'Servono 4 combinazioni + 1 coppia',
+    handCountError: '❌ Servono esattamente 14 tessere! Attuali {count}',
+    handMaxError: 'Massimo 14 tessere!',
+    tileNames: {
+      '1万':'1 Carattere','2万':'2 Carattere','3万':'3 Carattere','4万':'4 Carattere','5万':'5 Carattere','6万':'6 Carattere','7万':'7 Carattere','8万':'8 Carattere','9万':'9 Carattere',
+      '1筒':'1 Cerchio','2筒':'2 Cerchio','3筒':'3 Cerchio','4筒':'4 Cerchio','5筒':'5 Cerchio','6筒':'6 Cerchio','7筒':'7 Cerchio','8筒':'8 Cerchio','9筒':'9 Cerchio',
+      '1条':'1 Bambù','2条':'2 Bambù','3条':'3 Bambù','4条':'4 Bambù','5条':'5 Bambù','6条':'6 Bambù','7条':'7 Bambù','8条':'8 Bambù','9条':'9 Bambù',
+      '东':'Est','南':'Sud','西':'Ovest','北':'Nord',
+      '中':'Drago Rosso','发':'Drago Verde','白':'Drago Bianco',
+    },
+    quiz: [
+      {q:'Quante tessere in un set standard?',o:['108','136','144','120'],a:1},
+      {q:'Quante tessere per una mano vincente?',o:['12','13','14','16'],a:2},
+      {q:'Quale combinazione è valida?',o:['🀇🀈🀉 (1-2-3 Wan)','🀀🀁🀂 (E-S-W)','🀇🀙🀐 (mista)','🀄🀅🀄 (R-V-R)'],a:0},
+      {q:'Quante tessere per un Pung?',o:['2','3','4','1'],a:1},
+      {q:'Cos\'è un Colore Puro?',o:['Solo venti e draghi','Tutte stesso seme','7 coppie','Sequenza speciale'],a:1},
+      {q:'Chow si può reclamare da chi?',o:['Chiunque','Destra','Di fronte','Sinistra (precedente)'],a:3},
+      {q:'"Tsumo" significa?',o:['Vincere su scarto','Vince il mazziere','Pescare la vincente','Aiuto esterno'],a:2},
+      {q:'Quale mano vale di più?',o:['Tutto Tris','Mezzo Flush','Colore Puro','Grandi Quattro Venti'],a:3},
+      {q:'I due tipi di Kong?',o:['Esposto e Nascosto','Grande e Piccolo','Veloce e Lento','Crudo e Cotto'],a:0},
+      {q:'Il Vento dell\'Est 🀀 è?',o:['Numerale','Vento','Drago','Fiore'],a:1},
+    ]
+  },
+  es: {
+    appTitle: '🀄 Taller de Mahjong',
+    appDesc: 'Para Principiantes · Fichas · Práctica · Quiz',
+    navGallery: '🀫 Galería',
+    navRules: '📖 Reglas',
+    navBuilder: '🧩 Constructor',
+    navQuiz: '🎯 Quiz',
+    galleryHint: 'Haz clic en una ficha para ver su nombre.',
+    suitWan: 'Caracteres (Wan)',
+    suitTong: 'Círculos (Tong)',
+    suitTiao: 'Bambúes (Tiao)',
+    suitWind: 'Vientos',
+    suitDragon: 'Dragones',
+    rulesCompTitle: '🀄 Bases del Mahjong',
+    rulesComp: '<p>Un juego estándar tiene <span class="highlight">136 fichas</span> en tres categorías:</p><ul><li><strong>Fichas numéricas (108)</strong>: Caracteres, Círculos, Bambúes — 1~9 × 4</li><li><strong>Vientos (16)</strong>: Este, Sur, Oeste, Norte — 4 cada uno</li><li><strong>Dragones (12)</strong>: Rojo, Verde, Blanco — 4 cada uno</li></ul>',
+    rulesWinTitle: '🏆 Mano Ganadora',
+    rulesWin: '<p>Mano ganadora = <span class="highlight">4 combinaciones + 1 par</span> (14 fichas)</p><p style="margin-top:8px">Tres tipos de <strong>combinaciones</strong>:</p><ul><li><span class="highlight">Escalera (Chow)</span>: Tres consecutivas mismo palo</li><li><span class="highlight">Trío (Pung)</span>: Tres idénticas</li><li><span class="highlight">Póker (Kong)</span>: Cuatro idénticas</li></ul>',
+    rulesFlowTitle: '🎲 Desarrollo',
+    rulesFlow: '<ul><li><strong>Barajar & Muro</strong>: Cada jugador hace 17 pilas</li><li><strong>Dados</strong>: Dos dados determinan al crupier</li><li><strong>Robar</strong>: Crupier 14, otros 13 fichas</li><li><strong>Juego</strong>: Robar → descartar; <span class="highlight">Pung, Chow, Kong, o Mahjong</span></li><li><strong>Fin</strong>: Alguien gana o muro agotado</li></ul>',
+    rulesActionsTitle: '🎯 Acciones Especiales',
+    rulesActions: '<ul><li><span class="highlight">Pung</span>: Reclamar un descarte para hacer trío</li><li><span class="highlight">Chow</span>: Reclamar descarte del jugador anterior para escalera</li><li><span class="highlight">Kong</span>: Añadir 4ª ficha (oculto o expuesto)</li><li><span class="highlight">Tsumo</span>: Robar la ficha ganadora uno mismo</li><li><span class="highlight">Ron</span>: Ganar con el descarte de otro</li></ul>',
+    rulesFansTitle: '📊 Puntuación (Simplificado)',
+    rulesFans: '<ul><li><span class="highlight">1 Fan</span>: Todo Escaleras, Mano Oculta, Tsumo</li><li><span class="highlight">2 Fan</span>: Todo Tríos, Semi-Puro, Siete Pares</li><li><span class="highlight">3 Fan</span>: Puro, Honores Mixtos</li><li><span class="highlight">5+ Fan</span>: Pequeños/Grandes Dragones, Pequeños/Grandes Vientos, Trece Huérfanos</li></ul>',
+    builderHint: 'Haz clic en las fichas para construir tu mano (máx 14), luego "Verificar".',
+    handZoneLabel: '👇 Tu Mano ({count}/14)',
+    handEmptyHint: 'Haz clic en las fichas para construir tu mano 🀫',
+    btnCheck: '🔍 Verificar',
+    btnSort: '📐 Ordenar',
+    btnClear: '🗑 Limpiar',
+    btnNext: 'Siguiente ▶',
+    tilePoolTitle: 'Fichas — Haz clic para Seleccionar',
+    quizScore: 'Puntuación: {score} / {total}',
+    quizComplete: '🎉 ¡Quiz Completado!',
+    quizFinalScore: 'Total: {score} / {total}',
+    quizCorrect: '✅ ¡Correcto!',
+    quizWrong: '❌ Incorrecto. Respuesta correcta en verde.',
+    handWin: '🎉 ¡Felicitaciones! ¡Mano ganadora válida!',
+    handWinDetail: '4 combinaciones + 1 par ✓',
+    handLose: '❌ Mano no válida',
+    handLoseDetail: 'Se necesitan 4 combinaciones + 1 par',
+    handCountError: '❌ ¡Se necesitan exactamente 14 fichas! Actualmente {count}',
+    handMaxError: '¡Máximo 14 fichas!',
+    tileNames: {
+      '1万':'1 Carácter','2万':'2 Carácter','3万':'3 Carácter','4万':'4 Carácter','5万':'5 Carácter','6万':'6 Carácter','7万':'7 Carácter','8万':'8 Carácter','9万':'9 Carácter',
+      '1筒':'1 Círculo','2筒':'2 Círculo','3筒':'3 Círculo','4筒':'4 Círculo','5筒':'5 Círculo','6筒':'6 Círculo','7筒':'7 Círculo','8筒':'8 Círculo','9筒':'9 Círculo',
+      '1条':'1 Bambú','2条':'2 Bambú','3条':'3 Bambú','4条':'4 Bambú','5条':'5 Bambú','6条':'6 Bambú','7条':'7 Bambú','8条':'8 Bambú','9条':'9 Bambú',
+      '东':'Este','南':'Sur','西':'Oeste','北':'Norte',
+      '中':'Dragón Rojo','发':'Dragón Verde','白':'Dragón Blanco',
+    },
+    quiz: [
+      {q:'¿Cuántas fichas en un juego estándar?',o:['108','136','144','120'],a:1},
+      {q:'¿Cuántas fichas para ganar?',o:['12','13','14','16'],a:2},
+      {q:'¿Cuál es una combinación válida?',o:['🀇🀈🀉 (1-2-3 Wan)','🀀🀁🀂 (E-S-W)','🀇🀙🀐 (mixta)','🀄🀅🀄 (R-V-R)'],a:0},
+      {q:'¿Cuántas fichas para Pung?',o:['2','3','4','1'],a:1},
+      {q:'¿Qué es un Puro?',o:['Solo vientos y dragones','Todas del mismo palo','7 pares','Secuencia especial'],a:1},
+      {q:'¿Chow se reclama de quién?',o:['Cualquiera','Derecha','Enfrente','Izquierda (anterior)'],a:3},
+      {q:'¿Qué significa "Tsumo"?',o:['Ganar con descarte','Gana el crupier','Robar la ficha ganadora','Ayuda externa'],a:2},
+      {q:'¿Cuál mano vale más?',o:['Todo Tríos','Semi-Puro','Puro','Grandes Cuatro Vientos'],a:3},
+      {q:'¿Dos tipos de Kong?',o:['Expuesto y Oculto','Grande y Pequeño','Rápido y Lento','Crudo y Cocido'],a:0},
+      {q:'¿El Viento del Este 🀀 es?',o:['Numeral','Viento','Dragón','Flor'],a:1},
+    ]
+  },
+  de: {
+    appTitle: '🀄 Mahjong Lernwerkstatt',
+    appDesc: 'Für Anfänger · Steine · Übung · Quiz',
+    navGallery: '🀫 Galerie',
+    navRules: '📖 Regeln',
+    navBuilder: '🧩 Baukasten',
+    navQuiz: '🎯 Quiz',
+    galleryHint: 'Klicke auf einen Stein, um den Namen zu sehen.',
+    suitWan: 'Zahlen (Wan)',
+    suitTong: 'Kreise (Tong)',
+    suitTiao: 'Bambus (Tiao)',
+    suitWind: 'Winde',
+    suitDragon: 'Drachen',
+    rulesCompTitle: '🀄 Mahjong Grundlagen',
+    rulesComp: '<p>Ein Standard-Set hat <span class="highlight">136 Steine</span> in drei Kategorien:</p><ul><li><strong>Zahlensteine (108)</strong>: Zahlen, Kreise, Bambus — je 1~9 × 4</li><li><strong>Winde (16)</strong>: Ost, Süd, West, Nord — je 4</li><li><strong>Drachen (12)</strong>: Rot, Grün, Weiß — je 4</li></ul>',
+    rulesWinTitle: '🏆 Gewinnhand',
+    rulesWin: '<p>Gewinnhand = <span class="highlight">4 Sätze + 1 Paar</span> (14 Steine)</p><p style="margin-top:8px">Drei Arten von <strong>Sätzen</strong>:</p><ul><li><span class="highlight">Sequenz (Chow)</span>: Drei aufeinanderfolgende derselben Farbe</li><li><span class="highlight">Drilling (Pung)</span>: Drei gleiche Steine</li><li><span class="highlight">Vierling (Kong)</span>: Vier gleiche Steine</li></ul>',
+    rulesFlowTitle: '🎲 Spielablauf',
+    rulesFlow: '<ul><li><strong>Mischen & Mauer</strong>: Jeder Spieler baut 17 Stapel</li><li><strong>Würfeln</strong>: Zwei Würfel bestimmen den Geber</li><li><strong>Ziehen</strong>: Geber 14, andere je 13 Steine</li><li><strong>Spiel</strong>: Ziehen → abwerfen; <span class="highlight">Pung, Chow, Kong, oder Mahjong</span></li><li><strong>Ende</strong>: Jemand gewinnt oder Mauer leer (Unentschieden)</li></ul>',
+    rulesActionsTitle: '🎯 Spezialaktionen',
+    rulesActions: '<ul><li><span class="highlight">Pung</span>: Abwurf beanspruchen für Drilling</li><li><span class="highlight">Chow</span>: Abwurf des Vorgängers für Sequenz beanspruchen</li><li><span class="highlight">Kong</span>: 4. gleichen Stein hinzufügen (verdeckt/offen)</li><li><span class="highlight">Tsumo</span>: Gewinnstein selbst ziehen</li><li><span class="highlight">Ron</span>: Mit Abwurf eines anderen gewinnen</li></ul>',
+    rulesFansTitle: '📊 Punktehände (Vereinfacht)',
+    rulesFans: '<ul><li><span class="highlight">1 Fan</span>: Nur Sequenzen, Verdeckte Hand, Tsumo</li><li><span class="highlight">2 Fan</span>: Nur Drillinge, Halb-Rein, Sieben Paare</li><li><span class="highlight">3 Fan</span>: Rein, Gemischte Ehren</li><li><span class="highlight">5+ Fan</span>: Kleine/Große Drachen, Kleine/Große Winde, Dreizehn Waisen</li></ul>',
+    builderHint: 'Klicke Steine an, um deine Hand zu bauen (max 14), dann "Prüfen".',
+    handZoneLabel: '👇 Deine Hand ({count}/14)',
+    handEmptyHint: 'Klicke Steine an, um deine Hand zu bauen 🀫',
+    btnCheck: '🔍 Prüfen',
+    btnSort: '📐 Sortieren',
+    btnClear: '🗑 Löschen',
+    btnNext: 'Weiter ▶',
+    tilePoolTitle: 'Steine — Klicke zum Auswählen',
+    quizScore: 'Punktzahl: {score} / {total}',
+    quizComplete: '🎉 Quiz Abgeschlossen!',
+    quizFinalScore: 'Gesamt: {score} / {total}',
+    quizCorrect: '✅ Richtig!',
+    quizWrong: '❌ Falsch. Richtige Antwort grün markiert.',
+    handWin: '🎉 Glückwunsch! Gültige Gewinnhand!',
+    handWinDetail: '4 Sätze + 1 Paar ✓',
+    handLose: '❌ Keine gültige Gewinnhand',
+    handLoseDetail: '4 Sätze + 1 Paar erforderlich',
+    handCountError: '❌ Genau 14 Steine erforderlich! Derzeit {count}',
+    handMaxError: 'Maximal 14 Steine!',
+    tileNames: {
+      '1万':'1 Zahl','2万':'2 Zahl','3万':'3 Zahl','4万':'4 Zahl','5万':'5 Zahl','6万':'6 Zahl','7万':'7 Zahl','8万':'8 Zahl','9万':'9 Zahl',
+      '1筒':'1 Kreis','2筒':'2 Kreis','3筒':'3 Kreis','4筒':'4 Kreis','5筒':'5 Kreis','6筒':'6 Kreis','7筒':'7 Kreis','8筒':'8 Kreis','9筒':'9 Kreis',
+      '1条':'1 Bambus','2条':'2 Bambus','3条':'3 Bambus','4条':'4 Bambus','5条':'5 Bambus','6条':'6 Bambus','7条':'7 Bambus','8条':'8 Bambus','9条':'9 Bambus',
+      '东':'Ost','南':'Süd','西':'West','北':'Nord',
+      '中':'Roter Drache','发':'Grüner Drache','白':'Weißer Drache',
+    },
+    quiz: [
+      {q:'Wie viele Steine im Standard-Set?',o:['108','136','144','120'],a:1},
+      {q:'Wie viele Steine für Gewinnhand?',o:['12','13','14','16'],a:2},
+      {q:'Welche Kombination ist gültig?',o:['🀇🀈🀉 (1-2-3 Wan)','🀀🀁🀂 (O-S-W)','🀇🀙🀐 (gemischt)','🀄🀅🀄 (R-G-R)'],a:0},
+      {q:'Wie viele Steine für Pung?',o:['2','3','4','1'],a:1},
+      {q:'Was ist eine Reine Hand?',o:['Nur Winde/Drachen','Alle gleiche Farbe','7 Paare','Spezialsequenz'],a:1},
+      {q:'Chow von wem beanspruchen?',o:['Jedem','Rechts','Gegenüber','Links (Vorgänger)'],a:3},
+      {q:'Was bedeutet "Tsumo"?',o:['Mit Abwurf gewinnen','Geber gewinnt','Gewinnstein selbst ziehen','Fremde Hilfe'],a:2},
+      {q:'Welche Hand zählt am meisten?',o:['Nur Drillinge','Halb-Rein','Rein','Große Vier Winde'],a:3},
+      {q:'Zwei Kong-Arten?',o:['Offen und Verdeckt','Groß und Klein','Schnell und Langsam','Roh und Gekocht'],a:0},
+      {q:'Ostwind 🀀 ist?',o:['Zahlenstein','Wind','Drache','Blume'],a:1},
+    ]
+  },
+  ko: {
+    appTitle: '🀄 마작 학습장',
+    appDesc: '초보자용 · 패 익히기 · 연습 · 퀴즈',
+    navGallery: '🀫 패 갤러리',
+    navRules: '📖 규칙',
+    navBuilder: '🧩 패 구성',
+    navQuiz: '🎯 퀴즈',
+    galleryHint: '패를 클릭하면 이름을 볼 수 있습니다.',
+    suitWan: '만수 (萬子)',
+    suitTong: '통수 (筒子)',
+    suitTiao: '삭수 (索子)',
+    suitWind: '바람패',
+    suitDragon: '삼원패',
+    rulesCompTitle: '🀄 마작 기본 구성',
+    rulesComp: '<p>표준 마작은 <span class="highlight">136장</span>의 패로 구성됩니다:</p><ul><li><strong>수패 (108장)</strong>: 만수, 통수, 삭수 — 각 1~9 × 4</li><li><strong>바람패 (16장)</strong>: 동, 남, 서, 북 — 각 4장</li><li><strong>삼원패 (12장)</strong>: 중, 발, 백 — 각 4장</li></ul>',
+    rulesWinTitle: '🏆 오름 조건',
+    rulesWin: '<p>오름 = <span class="highlight">4개 몸통 + 1개 머리</span> (총 14장)</p><p style="margin-top:8px"><strong>몸통</strong>의 세 가지 유형:</p><ul><li><span class="highlight">슌쯔 (Chow)</span>: 같은 무늬 연속 3장</li><li><span class="highlight">커쯔 (Pung)</span>: 똑같은 패 3장</li><li><span class="highlight">깡쯔 (Kong)</span>: 똑같은 패 4장</li></ul>',
+    rulesFlowTitle: '🎲 게임 진행',
+    rulesFlow: '<ul><li><strong>패 섞기 & 쌓기</strong>: 4명이 각 17열씩 쌓기 (136장)</li><li><strong>주사위</strong>: 주사위 두 개로 친(親) 결정</li><li><strong>패 가져오기</strong>: 친 14장, 나머지 13장씩</li><li><strong>진행</strong>: 번갈아 패 뽑기 → 버리기; <span class="highlight">퐁, 치, 깡, 론</span> 가능</li><li><strong>종료</strong>: 누군가 오르거나 패산이 바닥남</li></ul>',
+    rulesActionsTitle: '🎯 특수 동작',
+    rulesActions: '<ul><li><span class="highlight">퐁 (Pung)</span>: 남이 버린 패로 커쯔 만들기</li><li><span class="highlight">치 (Chow)</span>: 상가가 버린 패로 슌쯔 만들기</li><li><span class="highlight">깡 (Kong)</span>: 4번째 동일 패 추가 (안깡/민깡)</li><li><span class="highlight">쯔모 (自摸)</span>: 스스로 오름패를 뽑음 → 전원 지불</li><li><span class="highlight">론 (栄)</span>: 남이 버린 패로 오름 → 버린 사람이 지불</li></ul>',
+    rulesFansTitle: '📊 역 소개 (간략판)',
+    rulesFans: '<ul><li><span class="highlight">1판</span>: 핑후, 문전청, 쯔모, 무자, 단요구</li><li><span class="highlight">2판</span>: 또이또이, 혼일색, 칠대, 전구인</li><li><span class="highlight">3판</span>: 청일색, 혼요구</li><li><span class="highlight">5판+</span>: 소삼원, 대삼원, 소사희, 대사희, 십삼요, 구련보등</li></ul>',
+    builderHint: '아래 패에서 클릭하여 패를 추가하세요 (최대 14장), 그런 다음 "오름 판정"을 클릭하세요.',
+    handZoneLabel: '👇 당신의 패 ({count}/14)',
+    handEmptyHint: '아래 패에서 클릭하여 패를 추가하세요 🀫',
+    btnCheck: '🔍 오름 판정',
+    btnSort: '📐 정렬',
+    btnClear: '🗑 초기화',
+    btnNext: '다음 ▶',
+    tilePoolTitle: '패 모음 — 클릭하여 선택',
+    quizScore: '점수: {score} / {total}',
+    quizComplete: '🎉 퀴즈 완료!',
+    quizFinalScore: '총점: {score} / {total}',
+    quizCorrect: '✅ 정답입니다!',
+    quizWrong: '❌ 오답입니다. 정답은 초록색으로 표시됩니다.',
+    handWin: '🎉 축하합니다! 유효한 오름 패입니다!',
+    handWinDetail: '4개 몸통 + 1개 머리 ✓',
+    handLose: '❌ 유효한 오름 패가 아닙니다',
+    handLoseDetail: '4개 몸통(슌쯔/커쯔) + 1개 머리가 필요합니다',
+    handCountError: '❌ 정확히 14장이 필요합니다! 현재 {count}장',
+    handMaxError: '최대 14장까지 가능합니다!',
+    tileNames: {
+      '1万':'1만','2万':'2만','3万':'3만','4万':'4만','5万':'5만','6万':'6만','7万':'7만','8万':'8만','9万':'9만',
+      '1筒':'1통','2筒':'2통','3筒':'3통','4筒':'4통','5筒':'5통','6筒':'6통','7筒':'7통','8筒':'8통','9筒':'9통',
+      '1条':'1삭','2条':'2삭','3条':'3삭','4条':'4삭','5条':'5삭','6条':'6삭','7条':'7삭','8条':'8삭','9条':'9삭',
+      '东':'동','南':'남','西':'서','北':'북',
+      '中':'중 (홍중)','发':'발 (녹발)','白':'백 (백판)',
+    },
+    quiz: [
+      {q:'표준 마작 세트의 패 수는?',o:['108장','136장','144장','120장'],a:1},
+      {q:'오름에 필요한 패 수는?',o:['12장','13장','14장','16장'],a:2},
+      {q:'다음 중 유효한 몸통은?',o:['🀇🀈🀉 (1-2-3만)','🀀🀁🀂 (동-남-서)','🀇🀙🀐 (혼합)','🀄🀅🀄 (중-발-중)'],a:0},
+      {q:'퐁에 필요한 동일 패 수는?',o:['2장','3장','4장','1장'],a:1},
+      {q:'청일색이란?',o:['바람패와 삼원패만','한 가지 무늬만','7쌍','특수 순서'],a:1},
+      {q:'치는 누구의 패만 가능?',o:['아무나','오른쪽','맞은편','왼쪽 (상가)'],a:3},
+      {q:'쯔모의 의미는?',o:['론으로 오름','친이 오름','스스로 오름패를 뽑음','도움받음'],a:2},
+      {q:'가장 높은 역은?',o:['또이또이','혼일색','청일색','대사희'],a:3},
+      {q:'깡의 두 종류는?',o:['민깡과 안깡','대깡과 소깡','속깡과 만깡','생깡과 숙깡'],a:0},
+      {q:'동풍 🀀의 종류는?',o:['수패','바람패','삼원패','화패'],a:1},
+    ]
+  },
+  ja: {
+    appTitle: '🀄 麻雀学習所',
+    appDesc: '初心者向け · 牌識別 · 手牌練習 · クイズ',
+    navGallery: '🀫 牌ギャラリー',
+    navRules: '📖 ルール',
+    navBuilder: '🧩 手牌作成',
+    navQuiz: '🎯 クイズ',
+    galleryHint: '牌をクリックすると名前が表示されます。',
+    suitWan: '萬子（ワンズ）',
+    suitTong: '筒子（ピンズ）',
+    suitTiao: '索子（ソウズ）',
+    suitWind: '風牌（フォンパイ）',
+    suitDragon: '三元牌（サンゲンパイ）',
+    rulesCompTitle: '🀄 麻雀の基本構成',
+    rulesComp: '<p>標準麻雀は<span class="highlight">136枚</span>の牌で構成されます：</p><ul><li><strong>数牌（108枚）</strong>：萬子、筒子、索子 — 各1~9 × 4</li><li><strong>風牌（16枚）</strong>：東、南、西、北 — 各4枚</li><li><strong>三元牌（12枚）</strong>：中、發、白 — 各4枚</li></ul>',
+    rulesWinTitle: '🏆 和了条件',
+    rulesWin: '<p>和了 = <span class="highlight">4面子 + 1雀頭</span>（計14枚）</p><p style="margin-top:8px"><strong>面子</strong>の3種類：</p><ul><li><span class="highlight">順子（シュンツ）</span>：同種で連続3枚</li><li><span class="highlight">刻子（コーツ）</span>：同一牌3枚</li><li><span class="highlight">槓子（カンツ）</span>：同一牌4枚</li></ul>',
+    rulesFlowTitle: '🎲 ゲームの流れ',
+    rulesFlow: '<ul><li><strong>洗牌 & 山積み</strong>：4人で洗牌後、各17幢（計136枚）</li><li><strong>サイコロ</strong>：2つのサイコロで親を決定</li><li><strong>配牌</strong>：親14枚、子各13枚</li><li><strong>進行</strong>：順番にツモ → 打牌；<span class="highlight">ポン、チー、カン、ロン</span>可能</li><li><strong>終局</strong>：誰かが和了るか、山牌が尽きる</li></ul>',
+    rulesActionsTitle: '🎯 特殊動作',
+    rulesActions: '<ul><li><span class="highlight">ポン（Pung）</span>：他家の捨牌で刻子を作る</li><li><span class="highlight">チー（Chow）</span>：上家の捨牌で順子を作る</li><li><span class="highlight">カン（Kong）</span>：4枚目の同牌を追加（暗槓/明槓）</li><li><span class="highlight">ツモ（自摸）</span>：自分で和了牌を引く → 全員払い</li><li><span class="highlight">ロン（栄）</span>：他家の捨牌で和了 → 振り込んだ人が支払い</li></ul>',
+    rulesFansTitle: '📊 役紹介（簡略版）',
+    rulesFans: '<ul><li><span class="highlight">1翻</span>：平和、門前清、ツモ、無字、断么九</li><li><span class="highlight">2翻</span>：対々和、混一色、七対子、全求人</li><li><span class="highlight">3翻</span>：清一色、混么九</li><li><span class="highlight">5翻+</span>：小三元、大三元、小四喜、大四喜、十三么九、九蓮宝燈</li></ul>',
+    builderHint: '下の牌からクリックして手牌に追加（最大14枚）、その後「和了判定」をクリック。',
+    handZoneLabel: '👇 あなたの手牌（{count}/14）',
+    handEmptyHint: '下の牌からクリックして手牌を作ってください 🀫',
+    btnCheck: '🔍 和了判定',
+    btnSort: '📐 並べ替え',
+    btnClear: '🗑 クリア',
+    btnNext: '次へ ▶',
+    tilePoolTitle: '牌一覧 — クリックで選択',
+    quizScore: 'スコア: {score} / {total}',
+    quizComplete: '🎉 クイズ完了！',
+    quizFinalScore: '合計: {score} / {total}',
+    quizCorrect: '✅ 正解です！',
+    quizWrong: '❌ 不正解です。正解は緑色で表示されています。',
+    handWin: '🎉 おめでとう！有効な和了形です！',
+    handWinDetail: '4面子 + 1雀頭 ✓',
+    handLose: '❌ 有効な和了形ではありません',
+    handLoseDetail: '4面子（順子/刻子）+ 1雀頭が必要です',
+    handCountError: '❌ 14枚ちょうど必要です！現在 {count}枚',
+    handMaxError: '最大14枚までです！',
+    tileNames: {
+      '1万':'一萬','2万':'二萬','3万':'三萬','4万':'四萬','5万':'五萬','6万':'六萬','7万':'七萬','8万':'八萬','9万':'九萬',
+      '1筒':'一筒','2筒':'二筒','3筒':'三筒','4筒':'四筒','5筒':'五筒','6筒':'六筒','7筒':'七筒','8筒':'八筒','9筒':'九筒',
+      '1条':'一索','2条':'二索','3条':'三索','4条':'四索','5条':'五索','6条':'六索','7条':'七索','8条':'八索','9条':'九索',
+      '东':'東','南':'南','西':'西','北':'北',
+      '中':'中','发':'發','白':'白',
+    },
+    quiz: [
+      {q:'標準麻雀セットの牌数は？',o:['108枚','136枚','144枚','120枚'],a:1},
+      {q:'和了に必要な牌数は？',o:['12枚','13枚','14枚','16枚'],a:2},
+      {q:'有効な面子はどれ？',o:['🀇🀈🀉 (1-2-3萬)','🀀🀁🀂 (東-南-西)','🀇🀙🀐 (混合)','🀄🀅🀄 (中-發-中)'],a:0},
+      {q:'ポンに必要な同牌数は？',o:['2枚','3枚','4枚','1枚'],a:1},
+      {q:'清一色とは？',o:['風牌と三元牌のみ','一種類の数牌のみ','7対子','特殊な並び'],a:1},
+      {q:'チーできるのは誰の捨牌？',o:['誰でも','右隣','対面','左隣（上家）'],a:3},
+      {q:'ツモの意味は？',o:['ロンで和了','親が和了','自分で和了牌を引く','助けてもらう'],a:2},
+      {q:'最も高い役は？',o:['対々和','混一色','清一色','大四喜'],a:3},
+      {q:'カンの2種類は？',o:['明槓と暗槓','大槓と小槓','速槓と遅槓','生槓と熟槓'],a:0},
+      {q:'東 🀀 の種類は？',o:['数牌','風牌','三元牌','花牌'],a:1},
+    ]
+  }
+};
+
+// ====== TILE DATA ======
+const TILES = [];
+const suits = [
+  {name:'万', cls:'char', emoji:['🀇','🀈','🀉','🀊','🀋','🀌','🀍','🀎','🀏']},
+  {name:'筒', cls:'dot', emoji:['🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡']},
+  {name:'条', cls:'bamboo', emoji:['🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀘']},
+];
+const winds = [
+  {name:'东', cls:'wind', emoji:'🀀'},
+  {name:'南', cls:'wind', emoji:'🀁'},
+  {name:'西', cls:'wind', emoji:'🀂'},
+  {name:'北', cls:'wind', emoji:'🀃'},
+];
+const dragons = [
+  {name:'中', cls:'dragon', emoji:'🀄'},
+  {name:'发', cls:'dragon', emoji:'🀅'},
+  {name:'白', cls:'dragon', emoji:'🀆'},
+];
+
+let id=0;
+suits.forEach((s,suitIdx)=>{
+  for(let n=1;n<=9;n++){
+    TILES.push({id:id++,key:`${n}${s.name}`, suit:suitIdx, num:n, emoji:s.emoji[n-1], cls:s.cls, type:'suit'});
+  }
+});
+winds.forEach((w,i)=>{ TILES.push({id:id++,key:w.name, suit:-1, num:i, emoji:w.emoji, cls:w.cls, type:'wind'}); });
+dragons.forEach((d,i)=>{ TILES.push({id:id++,key:d.name, suit:-1, num:i+31, emoji:d.emoji, cls:d.cls, type:'dragon'}); });
+
+// ====== STATE ======
+let hand = [];
+let quizIdx = 0, quizScore = 0, quizTotal = 0, quizAnswered = false;
+
+// ====== i18n helpers ======
+function t(key) {
+  return I18N[currentLang][key] || I18N['zh'][key] || key;
+}
+function tileName(key) {
+  return I18N[currentLang].tileNames[key] || key;
+}
+
+function switchLang(lang) {
+  currentLang = lang;
+  // Update lang buttons
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (el.tagName === 'BUTTON') {
+      el.textContent = t(key);
+    } else {
+      el.innerHTML = t(key);
+    }
+  });
+  // Re-render dynamic content
+  renderGallery();
+  renderBuilderPool();
+  renderHand();
+  loadQuiz();
+}
+
+// Language button handlers
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchLang(btn.dataset.lang));
+});
+
+// ====== GALLERY ======
+function renderGallery(){
+  const g = document.getElementById('gallery-content');
+  let html='';
+  suits.forEach((s,i)=>{
+    const labels = [t('suitWan'), t('suitTong'), t('suitTiao')];
+    html+=`<div class="tile-section"><h3>${'🀇🀙🀐'[i]} ${labels[i]}</h3><div class="tile-grid">`;
+    for(let n=1;n<=9;n++){
+      const t=TILES.find(x=>x.suit===i&&x.num===n);
+      html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.emoji}<span class="label">${tileName(t.key)}</span></div>`;
+    }
+    html+='</div></div>';
+  });
+  html+=`<div class="tile-section"><h3>🌬️ ${t('suitWind')}</h3><div class="tile-grid">`;
+  winds.forEach((w,i)=>{
+    const t=TILES.find(x=>x.type==='wind'&&x.num===i);
+    html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.emoji}<span class="label">${tileName(t.key)}</span></div>`;
+  });
+  html+='</div></div>';
+  html+=`<div class="tile-section"><h3>🐉 ${t('suitDragon')}</h3><div class="tile-grid">`;
+  dragons.forEach((d,i)=>{
+    const t=TILES.find(x=>x.type==='dragon'&&x.num===i+31);
+    html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.emoji}<span class="label">${tileName(t.key)}</span></div>`;
+  });
+  html+='</div></div>';
+  g.innerHTML=html;
+}
+
+// ====== HAND BUILDER ======
+function addToHand(tileId){
+  if(hand.length>=14){alert(t('handMaxError'));return;}
+  hand.push(tileId);
+  renderHand();
+}
+function removeFromHand(idx){
+  hand.splice(idx,1);
+  renderHand();
+}
+function clearHand(){
+  hand=[];
+  document.getElementById('hand-result').innerHTML='';
+  renderHand();
+}
+function sortHand(){
+  hand.sort((a,b)=>{
+    const ta=TILES[a], tb=TILES[b];
+    if(ta.type!==tb.type) return ta.type==='suit'?-1:ta.type==='wind'?(tb.type==='dragon'?-1:1):1;
+    if(ta.type==='suit'){
+      if(ta.suit!==tb.suit) return ta.suit-tb.suit;
+      return ta.num-tb.num;
+    }
+    return ta.num-tb.num;
+  });
+  renderHand();
+}
+function renderHand(){
+  const zone=document.getElementById('hand-zone');
+  if(hand.length===0){
+    zone.innerHTML=`<span style="color:var(--text2);font-size:0.9rem">${t('handEmptyHint')}</span>`;
+  }else{
+    zone.innerHTML=hand.map((tid,i)=>{
+      const tile=TILES[tid];
+      return `<div class="hand-tile ${tile.cls}" title="${tileName(tile.key)}" onclick="removeFromHand(${i})">${tile.emoji}<span class="label">${tileName(tile.key)}</span></div>`;
+    }).join('');
+  }
+  document.querySelector('#panel-builder .hand-zone-label').textContent=t('handZoneLabel').replace('{count}',hand.length);
+  document.querySelectorAll('.tile').forEach(el=>el.classList.remove('selected'));
+  hand.forEach(tid=>{
+    const tile=TILES[tid];
+    document.querySelectorAll('.tile').forEach(el=>{
+      if(el.querySelector('.label')?.textContent===tileName(tile.key))el.classList.add('selected');
+    });
+  });
+}
+
+// ====== WIN CHECK ENGINE ======
+function checkWin(){
+  document.getElementById('hand-result').innerHTML='';
+  if(hand.length!==14){
+    document.getElementById('hand-result').innerHTML=`<div class="result-box result-lose">${t('handCountError').replace('{count}',hand.length)}</div>`;
+    return;
+  }
+  const count=new Map();
+  hand.forEach(tid=>{
+    const tile=TILES[tid];
+    const key=tile.type==='suit'?`s${tile.suit}n${tile.num}`:`t${tile.type}v${tile.num}`;
+    count.set(key,(count.get(key)||0)+1);
+  });
+  const keys=Array.from(count.keys());
+  for(const pairKey of keys){
+    if(count.get(pairKey)<2) continue;
+    const remaining=new Map(count);
+    const v=remaining.get(pairKey);
+    if(v===2) remaining.delete(pairKey);
+    else remaining.set(pairKey,v-2);
+    if(canFormMelds(remaining,4)){
+      document.getElementById('hand-result').innerHTML=`<div class="result-box result-win">${t('handWin')}<br><span style="font-size:0.85rem;font-weight:400;color:var(--text2)">${t('handWinDetail')}</span></div>`;
+      return;
+    }
+  }
+  document.getElementById('hand-result').innerHTML=`<div class="result-box result-lose">${t('handLose')}<br><span style="font-size:0.85rem;font-weight:400;color:var(--text2)">${t('handLoseDetail')}</span></div>`;
+}
+
+function canFormMelds(remaining, meldCount){
+  if(meldCount===0) return remaining.size===0;
+  for(const [key,v] of remaining){
+    if(v>=3){
+      const next=new Map(remaining);
+      if(v===3) next.delete(key);
+      else next.set(key,v-3);
+      if(canFormMelds(next,meldCount-1)) return true;
+    }
+  }
+  for(const [key,v] of remaining){
+    if(!key.startsWith('s')) continue;
+    const suit=parseInt(key[1]);
+    const num=parseInt(key.substring(3));
+    const k1=`s${suit}n${num+1}`;
+    const k2=`s${suit}n${num+2}`;
+    if(remaining.get(k1)>=1 && remaining.get(k2)>=1){
+      const next=new Map(remaining);
+      decMap(next,key); decMap(next,k1); decMap(next,k2);
+      if(canFormMelds(next,meldCount-1)) return true;
+    }
+  }
+  return false;
+}
+
+function decMap(m,k){
+  const v=m.get(k);
+  if(v===1) m.delete(k);
+  else m.set(k,v-1);
+}
+
+// ====== BUILDER TILE POOL ======
+function renderBuilderPool(){
+  const pool=document.getElementById('builder-tile-pool');
+  pool.innerHTML=TILES.map(tile=>`<div class="tile ${tile.cls}" title="${tileName(tile.key)}" onclick="addToHand(${tile.id})">${tile.emoji}<span class="label">${tileName(tile.key)}</span></div>`).join('');
+}
+
+// ====== QUIZ ======
+function loadQuiz(){
+  const quiz = I18N[currentLang].quiz;
+  if(quizIdx>=quiz.length){
+    document.getElementById('quiz-q').textContent=t('quizComplete');
+    document.getElementById('quiz-opts').innerHTML=`<p style="color:var(--text2)">${t('quizFinalScore').replace('{score}',quizScore).replace('{total}',quizTotal)}</p>`;
+    document.getElementById('quiz-fb').textContent='';
+    document.getElementById('quiz-next').style.display='none';
+    return;
+  }
+  quizAnswered=false;
+  const item=quiz[quizIdx];
+  document.getElementById('quiz-q').textContent=`${quizIdx+1}. ${item.q}`;
+  document.getElementById('quiz-score').textContent=t('quizScore').replace('{score}',quizScore).replace('{total}',quizTotal);
+  document.getElementById('quiz-fb').textContent='';
+  document.getElementById('quiz-next').style.display='none';
+  const opts=document.getElementById('quiz-opts');
+  opts.innerHTML=item.o.map((o,i)=>`<button class="quiz-option" onclick="answerQuiz(${i})">${o}</button>`).join('');
+}
+
+function answerQuiz(idx){
+  if(quizAnswered) return;
+  quizAnswered=true;
+  quizTotal++;
+  const quiz = I18N[currentLang].quiz;
+  const item=quiz[quizIdx];
+  const btns=document.querySelectorAll('.quiz-option');
+  if(idx===item.a){
+    quizScore++;
+    btns[idx].classList.add('correct');
+    document.getElementById('quiz-fb').textContent=t('quizCorrect');
+  }else{
+    btns[idx].classList.add('wrong');
+    btns[item.a].classList.add('correct');
+    document.getElementById('quiz-fb').textContent=t('quizWrong');
+  }
+  document.getElementById('quiz-score').textContent=t('quizScore').replace('{score}',quizScore).replace('{total}',quizTotal);
+  document.getElementById('quiz-next').style.display='inline-block';
+  btns.forEach(b=>b.disabled=true);
+}
+
+function nextQuiz(){
+  quizIdx++;
+  loadQuiz();
+}
+
+// ====== NAVIGATION ======
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+  });
+});
+
+// ====== INIT ======
+renderGallery();
+renderBuilderPool();
+renderHand();
+loadQuiz();
+</script>
+</body>
+</html>
