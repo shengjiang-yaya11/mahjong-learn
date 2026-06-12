@@ -41,15 +41,16 @@ body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans S
 .tile-section{margin-bottom:28px}
 .tile-section h3{font-size:1.15rem;margin-bottom:14px;color:var(--accent);display:flex;align-items:center;gap:8px}
 .tile-grid{display:flex;flex-wrap:wrap;gap:8px}
-.tile{width:var(--tile-w);height:var(--tile-h);border-radius:6px;background:#fef3c7;border:2px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;transition:all .15s;position:relative;box-shadow:0 2px 4px rgba(0,0,0,.2)}
-.tile:hover{transform:translateY(-4px);box-shadow:0 6px 16px rgba(0,0,0,.3);z-index:10}
-.tile.bamboo{color:#166534}
-.tile.char{color:#991b1b}
-.tile.dot{color:#1d4ed8}
-.tile.wind{color:#4b5563}
-.tile.dragon{color:#c2410c}
-.tile .label{position:absolute;bottom:3px;font-size:0.6rem;color:#92400e;white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis}
-.tile.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.3)}
+.tile{width:var(--tile-w);height:var(--tile-h);border-radius:7px;background:linear-gradient(145deg,#fefcf0 0%,#f5ecd7 40%,#ede0c8 100%);border:2px solid #c4a265;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;cursor:pointer;transition:all .15s;position:relative;box-shadow:0 3px 6px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.6);color:#3d2b1f;letter-spacing:0}
+.tile:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.6);z-index:10}
+.tile.bamboo{color:#1a5c2a}
+.tile.char{color:#8b1a1a}
+.tile.dot{color:#1a3f8b}
+.tile.wind{color:#3a3f47}
+.tile.dragon{color:#b8450f}
+.tile .corner{position:absolute;top:3px;left:5px;font-size:0.55rem;font-weight:600;opacity:.7;line-height:1}
+.tile .label{position:absolute;bottom:2px;font-size:0.55rem;color:#8b6914;white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+.tile.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.4),0 6px 16px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.6)}
 
 /* === RULES === */
 .rule-block{margin-bottom:20px}
@@ -63,8 +64,14 @@ body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans S
 .builder-area{min-height:200px}
 .hand-zone{border:2px dashed var(--card2);border-radius:var(--radius);padding:16px;min-height:110px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin-bottom:16px}
 .hand-zone-label{font-size:0.8rem;color:var(--text2);text-align:center;margin-bottom:6px}
-.hand-tile{width:52px;height:72px;border-radius:5px;background:#fef3c7;border:2px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:1.25rem;cursor:pointer;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:all .15s}
-.hand-tile:hover{transform:translateY(-3px)}
+.hand-tile{width:52px;height:72px;border-radius:6px;background:linear-gradient(145deg,#fefcf0 0%,#f5ecd7 40%,#ede0c8 100%);border:2px solid #c4a265;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;cursor:pointer;position:relative;box-shadow:0 2px 5px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.5);transition:all .15s;color:#3d2b1f}
+.hand-tile:hover{transform:translateY(-4px);box-shadow:0 5px 14px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.5)}
+.hand-tile.bamboo{color:#1a5c2a}
+.hand-tile.char{color:#8b1a1a}
+.hand-tile.dot{color:#1a3f8b}
+.hand-tile.wind{color:#3a3f47}
+.hand-tile.dragon{color:#b8450f}
+.hand-tile .corner{position:absolute;top:2px;left:4px;font-size:0.5rem;font-weight:600;opacity:.65;line-height:1}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
 .btn{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-size:0.9rem;font-family:inherit;transition:all .2s;font-weight:500}
 .btn-primary{background:var(--accent);color:var(--bg)}
@@ -92,7 +99,8 @@ body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans S
 /* Responsive */
 @media(max-width:768px){
   :root{--tile-w:48px;--tile-h:66px}
-  .hand-tile{width:44px;height:60px;font-size:1.1rem}
+  .hand-tile{width:44px;height:60px;font-size:0.9rem}
+  .tile{font-size:1.05rem}
   .nav-btn{padding:8px 16px;font-size:0.85rem}
   .header h1{font-size:1.8rem}
 }
@@ -107,17 +115,24 @@ body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans S
 .game-player-area{background:var(--card);border-radius:var(--radius);padding:16px;border:2px solid var(--accent)}
 .game-player-name{font-weight:600;font-size:0.9rem;color:var(--accent);margin-bottom:8px}
 .game-player-hand{display:flex;flex-wrap:wrap;gap:4px;min-height:74px;align-items:center;justify-content:center}
-.game-player-hand .game-tile{width:48px;height:66px;border-radius:5px;background:#fef3c7;border:2px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:1.15rem;cursor:pointer;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:all .15s}
-.game-player-hand .game-tile:hover{transform:translateY(-6px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.game-player-hand .game-tile.selected-tile{border-color:var(--red);box-shadow:0 0 0 3px rgba(248,113,113,.3);transform:translateY(-6px)}
-.game-player-hand .game-tile .g-label{position:absolute;bottom:1px;font-size:0.5rem;color:#92400e}
+.game-player-hand .game-tile{width:48px;height:66px;border-radius:6px;background:linear-gradient(145deg,#fefcf0 0%,#f5ecd7 40%,#ede0c8 100%);border:2px solid #c4a265;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;cursor:pointer;position:relative;box-shadow:0 2px 5px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.5);transition:all .15s;color:#3d2b1f}
+.game-player-hand .game-tile:hover{transform:translateY(-6px);box-shadow:0 6px 16px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.5)}
+.game-player-hand .game-tile.selected-tile{border-color:var(--red);box-shadow:0 0 0 3px rgba(248,113,113,.4),0 6px 16px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.5);transform:translateY(-6px)}
+.game-player-hand .game-tile.bamboo{color:#1a5c2a}
+.game-player-hand .game-tile.char{color:#8b1a1a}
+.game-player-hand .game-tile.dot{color:#1a3f8b}
+.game-player-hand .game-tile.wind{color:#3a3f47}
+.game-player-hand .game-tile.dragon{color:#b8450f}
+.game-player-hand .game-tile .corner{position:absolute;top:2px;left:3px;font-size:0.45rem;font-weight:600;opacity:.6;line-height:1}
+.game-player-hand .game-tile .g-label{position:absolute;bottom:1px;font-size:0.45rem;color:#8b6914;font-weight:400}
 .game-center{grid-area:center;display:flex;flex-direction:column;align-items:center;gap:10px}
 .game-discards{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;padding:10px;background:var(--card);border-radius:var(--radius);min-height:50px;align-items:center;border:1px solid var(--card2)}
-.game-dtile{width:40px;height:54px;border-radius:4px;background:#fef3c7;border:1px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:0.95rem;opacity:.85}
+.game-dtile{width:40px;height:54px;border-radius:5px;background:linear-gradient(145deg,#fefcf0 0%,#f5ecd7 40%,#ede0c8 100%);border:1.5px solid #c4a265;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;opacity:.88;color:#3d2b1f;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .game-info{color:var(--gold);font-size:0.9rem;font-weight:600;text-align:center}
 .game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
 .game-actions .btn{padding:6px 14px;font-size:0.8rem}
-.game-drawn{width:48px;height:66px;border-radius:5px;background:#fef3c7;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:0 2px 8px rgba(74,222,128,.3)}
+.game-drawn{width:48px;height:66px;border-radius:6px;background:linear-gradient(145deg,#fefcf0 0%,#f5ecd7 40%,#ede0c8 100%);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;box-shadow:0 2px 8px rgba(74,222,128,.35),inset 0 1px 0 rgba(255,255,255,.5);color:#3d2b1f;animation:pulse-glow 1.5s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{box-shadow:0 2px 8px rgba(74,222,128,.35),inset 0 1px 0 rgba(255,255,255,.5)}50%{box-shadow:0 4px 16px rgba(74,222,128,.55),inset 0 1px 0 rgba(255,255,255,.5)}}
 .game-opp-melds{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
 .game-meld{display:flex;gap:1px;padding:2px 4px;border-radius:4px;background:rgba(212,168,83,.2);border:1px solid #d4a853;font-size:0.7rem;color:var(--text2)}
 .game-meld span{margin:0 1px}
@@ -776,32 +791,34 @@ const I18N = {
 };
 
 // ====== TILE DATA ======
+// face: main character displayed on tile
+// corner: small suit marker in top-left
 const TILES = [];
 const suits = [
-  {name:'万', cls:'char', emoji:['🀇','🀈','🀉','🀊','🀋','🀌','🀍','🀎','🀏']},
-  {name:'筒', cls:'dot', emoji:['🀙','🀚','🀛','🀜','🀝','🀞','🀟','🀠','🀡']},
-  {name:'条', cls:'bamboo', emoji:['🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀘']},
+  {name:'万', cls:'char', chars:['一','二','三','四','五','六','七','八','九']},
+  {name:'筒', cls:'dot', chars:['一','二','三','四','五','六','七','八','九']},
+  {name:'条', cls:'bamboo', chars:['一','二','三','四','五','六','七','八','九']},
 ];
-const winds = [
-  {name:'东', cls:'wind', emoji:'🀀'},
-  {name:'南', cls:'wind', emoji:'🀁'},
-  {name:'西', cls:'wind', emoji:'🀂'},
-  {name:'北', cls:'wind', emoji:'🀃'},
-];
-const dragons = [
-  {name:'中', cls:'dragon', emoji:'🀄'},
-  {name:'发', cls:'dragon', emoji:'🀅'},
-  {name:'白', cls:'dragon', emoji:'🀆'},
-];
+const windChars = ['東','南','西','北'];
+const dragonChars = ['中','發','白'];
+const windNames = ['东','南','西','北'];
+const dragonNames = ['中','发','白'];
 
 let id=0;
 suits.forEach((s,suitIdx)=>{
   for(let n=1;n<=9;n++){
-    TILES.push({id:id++,key:`${n}${s.name}`, suit:suitIdx, num:n, emoji:s.emoji[n-1], cls:s.cls, type:'suit'});
+    TILES.push({id:id++,key:`${n}${s.name}`, suit:suitIdx, num:n,
+      face:`${s.chars[n-1]}${s.name}`, corner:s.name, cls:s.cls, type:'suit'});
   }
 });
-winds.forEach((w,i)=>{ TILES.push({id:id++,key:w.name, suit:-1, num:i, emoji:w.emoji, cls:w.cls, type:'wind'}); });
-dragons.forEach((d,i)=>{ TILES.push({id:id++,key:d.name, suit:-1, num:i+31, emoji:d.emoji, cls:d.cls, type:'dragon'}); });
+windNames.forEach((w,i)=>{
+  TILES.push({id:id++,key:w, suit:-1, num:i,
+    face:windChars[i], corner:'', cls:'wind', type:'wind'});
+});
+dragonNames.forEach((d,i)=>{
+  TILES.push({id:id++,key:d, suit:-1, num:i+31,
+    face:dragonChars[i], corner:'', cls:'dragon', type:'dragon'});
+});
 
 // ====== STATE ======
 let hand = [];
@@ -849,20 +866,20 @@ function renderGallery(){
     html+=`<div class="tile-section"><h3>${'🀇🀙🀐'[i]} ${labels[i]}</h3><div class="tile-grid">`;
     for(let n=1;n<=9;n++){
       const t=TILES.find(x=>x.suit===i&&x.num===n);
-      html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.emoji}<span class="label">${tileName(t.key)}</span></div>`;
+      html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.face}<span class="corner">${t.corner}</span><span class="label">${tileName(t.key)}</span></div>`;
     }
     html+='</div></div>';
   });
   html+=`<div class="tile-section"><h3>🌬️ ${t('suitWind')}</h3><div class="tile-grid">`;
   winds.forEach((w,i)=>{
     const t=TILES.find(x=>x.type==='wind'&&x.num===i);
-    html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.emoji}<span class="label">${tileName(t.key)}</span></div>`;
+    html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.face}<span class="corner">${t.corner}</span><span class="label">${tileName(t.key)}</span></div>`;
   });
   html+='</div></div>';
   html+=`<div class="tile-section"><h3>🐉 ${t('suitDragon')}</h3><div class="tile-grid">`;
   dragons.forEach((d,i)=>{
     const t=TILES.find(x=>x.type==='dragon'&&x.num===i+31);
-    html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.emoji}<span class="label">${tileName(t.key)}</span></div>`;
+    html+=`<div class="tile ${t.cls}" title="${tileName(t.key)}" onclick="addToHand(${t.id})">${t.face}<span class="corner">${t.corner}</span><span class="label">${tileName(t.key)}</span></div>`;
   });
   html+='</div></div>';
   g.innerHTML=html;
@@ -902,7 +919,7 @@ function renderHand(){
   }else{
     zone.innerHTML=hand.map((tid,i)=>{
       const tile=TILES[tid];
-      return `<div class="hand-tile ${tile.cls}" title="${tileName(tile.key)}" onclick="removeFromHand(${i})">${tile.emoji}<span class="label">${tileName(tile.key)}</span></div>`;
+      return `<div class="hand-tile ${tile.cls}" title="${tileName(tile.key)}" onclick="removeFromHand(${i})">${tile.face}<span class="corner">${tile.corner}</span><span class="label">${tileName(tile.key)}</span></div>`;
     }).join('');
   }
   document.querySelector('#panel-builder .hand-zone-label').textContent=t('handZoneLabel').replace('{count}',hand.length);
@@ -977,7 +994,7 @@ function decMap(m,k){
 // ====== BUILDER TILE POOL ======
 function renderBuilderPool(){
   const pool=document.getElementById('builder-tile-pool');
-  pool.innerHTML=TILES.map(tile=>`<div class="tile ${tile.cls}" title="${tileName(tile.key)}" onclick="addToHand(${tile.id})">${tile.emoji}<span class="label">${tileName(tile.key)}</span></div>`).join('');
+  pool.innerHTML=TILES.map(tile=>`<div class="tile ${tile.cls}" title="${tileName(tile.key)}" onclick="addToHand(${tile.id})">${tile.face}<span class="corner">${tile.corner}</span><span class="label">${tileName(tile.key)}</span></div>`).join('');
 }
 
 // ====== QUIZ ======
@@ -1114,7 +1131,7 @@ function renderGameBoard(){
   ph.innerHTML = me.hand.map((tid,i)=>{
     const t=TILES[tid];
     const sel = (playerSelected===i && gameState===GAME_STATES.PLAYER_TURN) ? ' selected-tile' : '';
-    return `<div class="game-tile ${t.cls}${sel}" onclick="playerClickTile(${i})">${t.emoji}</div>`;
+    return `<div class="game-tile ${t.cls}${sel}" onclick="playerClickTile(${i})">${t.face}</div>`;
   }).join('');
 
   // Drawn tile
@@ -1122,7 +1139,7 @@ function renderGameBoard(){
   if(playerDrawnTile!==null){
     const t=TILES[playerDrawnTile];
     pd.style.display='block';
-    pd.innerHTML=`<div class="game-drawn ${t.cls}">${t.emoji}</div>`;
+    pd.innerHTML=`<div class="game-drawn ${t.cls}">${t.face}</div>`;
   }else{
     pd.style.display='none';
   }
@@ -1137,7 +1154,7 @@ function renderGameBoard(){
     // Show melds
     const tm=document.getElementById('opp-melds-'+sides[s]);
     tm.innerHTML = opp.melds.map(m=>{
-      const tiles=m.tiles.map(tid=>TILES[tid].emoji).join('');
+      const tiles=m.tiles.map(tid=>TILES[tid].face).join('');
       return `<div class="game-meld"><span>${tiles}</span></div>`;
     }).join('');
     // Highlight current player
@@ -1152,7 +1169,7 @@ function renderGameBoard(){
   const dd=document.getElementById('game-discards');
   dd.innerHTML = gameDiscards.map(tid=>{
     const t=TILES[tid];
-    return `<div class="game-dtile ${t.cls}">${t.emoji}</div>`;
+    return `<div class="game-dtile ${t.cls}">${t.face}</div>`;
   }).join('') || `<span style="color:var(--text2);font-size:0.85rem">${t('discardHint')}</span>`;
 
   // Info
