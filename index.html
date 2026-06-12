@@ -96,6 +96,43 @@ body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans S
   .nav-btn{padding:8px 16px;font-size:0.85rem}
   .header h1{font-size:1.8rem}
 }
+
+/* === GAME === */
+.game-table{display:grid;grid-template-areas:"top top top" "left center right" "bottom bottom bottom";grid-template-columns:120px 1fr 120px;grid-template-rows:auto 1fr auto;gap:10px;min-height:600px}
+.game-opp{background:var(--card);border-radius:var(--radius);padding:12px;text-align:center;border:1px solid var(--card2);display:flex;flex-direction:column;align-items:center;gap:6px}
+.game-opp-name{font-weight:600;font-size:0.9rem;color:var(--accent)}
+.game-opp-tiles{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;max-width:100%}
+.game-opp-tiles .mini-tile{width:28px;height:20px;border-radius:3px;background:linear-gradient(135deg,#1e40af,#3b82f6);opacity:.8}
+.game-opp-tiles .mini-tile.pungged{background:linear-gradient(135deg,#92400e,#d4a853);border:1px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#78350f;width:auto;padding:0 2px}
+.game-player-area{background:var(--card);border-radius:var(--radius);padding:16px;border:2px solid var(--accent)}
+.game-player-name{font-weight:600;font-size:0.9rem;color:var(--accent);margin-bottom:8px}
+.game-player-hand{display:flex;flex-wrap:wrap;gap:4px;min-height:74px;align-items:center;justify-content:center}
+.game-player-hand .game-tile{width:48px;height:66px;border-radius:5px;background:#fef3c7;border:2px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:1.15rem;cursor:pointer;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:all .15s}
+.game-player-hand .game-tile:hover{transform:translateY(-6px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.game-player-hand .game-tile.selected-tile{border-color:var(--red);box-shadow:0 0 0 3px rgba(248,113,113,.3);transform:translateY(-6px)}
+.game-player-hand .game-tile .g-label{position:absolute;bottom:1px;font-size:0.5rem;color:#92400e}
+.game-center{grid-area:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.game-discards{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;padding:10px;background:var(--card);border-radius:var(--radius);min-height:50px;align-items:center;border:1px solid var(--card2)}
+.game-dtile{width:40px;height:54px;border-radius:4px;background:#fef3c7;border:1px solid #d4a853;display:flex;align-items:center;justify-content:center;font-size:0.95rem;opacity:.85}
+.game-info{color:var(--gold);font-size:0.9rem;font-weight:600;text-align:center}
+.game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.game-actions .btn{padding:6px 14px;font-size:0.8rem}
+.game-drawn{width:48px;height:66px;border-radius:5px;background:#fef3c7;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:0 2px 8px rgba(74,222,128,.3)}
+.game-opp-melds{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
+.game-meld{display:flex;gap:1px;padding:2px 4px;border-radius:4px;background:rgba(212,168,83,.2);border:1px solid #d4a853;font-size:0.7rem;color:var(--text2)}
+.game-meld span{margin:0 1px}
+#game-top{grid-area:top}#game-left{grid-area:left}#game-right{grid-area:right}#game-bottom{grid-area:bottom}
+#game-left .game-opp-tiles{flex-direction:column}
+#game-right .game-opp-tiles{flex-direction:column}
+.game-draw-btn{margin-top:8px}
+
+@media(max-width:768px){
+  .game-table{grid-template-columns:60px 1fr 60px}
+  .game-player-hand .game-tile{width:36px;height:50px;font-size:0.9rem}
+  .game-dtile{width:30px;height:40px;font-size:0.75rem}
+  .game-drawn{width:36px;height:50px;font-size:0.9rem}
+  .game-opp-tiles .mini-tile{width:20px;height:14px}
+}
 </style>
 </head>
 <body>
@@ -126,6 +163,7 @@ body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans S
     <button class="nav-btn" data-panel="rules" data-i18n="navRules">📖 规则讲解</button>
     <button class="nav-btn" data-panel="builder" data-i18n="navBuilder">🧩 手牌搭建</button>
     <button class="nav-btn" data-panel="quiz" data-i18n="navQuiz">🎯 趣味测验</button>
+    <button class="nav-btn" data-panel="play" data-i18n="navPlay">🎮 对局</button>
   </nav>
 
   <!-- Panel: Gallery -->
@@ -134,6 +172,45 @@ body{font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans S
       <p style="color:var(--text2);margin-bottom:16px" data-i18n="galleryHint">点击任意麻将牌可查看名称，选中的牌可加入下方的手牌区域进行练习。</p>
     </div>
     <div id="gallery-content"></div>
+  </div>
+
+  <!-- Panel: Play Game -->
+  <div class="panel" id="panel-play">
+    <div class="card" style="text-align:center">
+      <p style="color:var(--text2);margin-bottom:8px" data-i18n="playHint"></p>
+      <button class="btn btn-primary" onclick="startGame()" id="btn-start-game" data-i18n="btnStartGame">🎮 开始新对局</button>
+    </div>
+    <div class="game-table" id="game-table" style="display:none">
+      <div class="game-opp" id="game-top">
+        <div class="game-opp-name" id="opp-name-top">🤖 东家</div>
+        <div class="game-opp-melds" id="opp-melds-top"></div>
+        <div class="game-opp-tiles" id="opp-tiles-top"></div>
+      </div>
+      <div class="game-opp" id="game-left">
+        <div class="game-opp-name" id="opp-name-left">🤖 北家</div>
+        <div class="game-opp-melds" id="opp-melds-left"></div>
+        <div class="game-opp-tiles" id="opp-tiles-left"></div>
+      </div>
+      <div class="game-opp" id="game-right">
+        <div class="game-opp-name" id="opp-name-right">🤖 南家</div>
+        <div class="game-opp-melds" id="opp-melds-right"></div>
+        <div class="game-opp-tiles" id="opp-tiles-right"></div>
+      </div>
+      <div class="game-center">
+        <div class="game-info" id="game-info"></div>
+        <div class="game-discards" id="game-discards">
+          <span style="color:var(--text2);font-size:0.85rem" data-i18n="discardHint">弃牌区</span>
+        </div>
+        <div class="game-actions" id="game-actions"></div>
+      </div>
+      <div class="game-player-area" id="game-bottom">
+        <div class="game-player-name">🧑 你的手牌</div>
+        <div style="display:flex;align-items:flex-start;gap:10px;justify-content:center;flex-wrap:wrap">
+          <div class="game-player-hand" id="player-hand"></div>
+          <div id="player-drawn" style="display:none"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Panel: Rules -->
@@ -964,6 +1041,721 @@ renderGallery();
 renderBuilderPool();
 renderHand();
 loadQuiz();
+
+
+// ====== MAHJONG GAME ENGINE ======
+const GAME_STATES = { IDLE:0, PLAYER_TURN:1, AI_TURN:2, ACTION_CHOICE:3, GAME_OVER:4 };
+let gameState = GAME_STATES.IDLE;
+let gameWall = [];        // remaining draw pile
+let gamePlayers = [];     // [{hand, melds, name, isHuman}]
+let gameCurrentPlayer = 0; // 0=East, 1=South, 2=West(human), 3=North
+let gameLastDiscard = null; // {tileId, fromPlayer}
+let gameDiscards = [];    // all discards
+let playerDrawnTile = null; // tile just drawn by player
+let playerSelected = -1;  // index in hand for discard
+let playerActions = [];   // available actions: 'pung','chow','kong','win'
+
+function initGame(){
+  // Create wall: 4 copies of each tile
+  gameWall = [];
+  const totalCopies = 4;
+  for(let i=0;i<totalCopies;i++){
+    const shuffled = [...TILES].sort(()=>Math.random()-0.5);
+    gameWall.push(...shuffled.map(t=>t.id));
+  }
+  // Shuffle the whole wall
+  for(let i=gameWall.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [gameWall[i],gameWall[j]]=[gameWall[j],gameWall[i]];
+  }
+
+  // Deal: East=14, others=13
+  gamePlayers = [
+    {hand:[], melds:[], name:t('oppEast'), isHuman:false},
+    {hand:[], melds:[], name:t('oppSouth'), isHuman:false},
+    {hand:[], melds:[], name:t('oppWest'), isHuman:true},
+    {hand:[], melds:[], name:t('oppNorth'), isHuman:false},
+  ];
+  for(let p=0;p<4;p++){
+    const count = p===0?14:13;
+    for(let i=0;i<count;i++) gamePlayers[p].hand.push(gameWall.pop());
+  }
+  gameCurrentPlayer = 0;
+  gameLastDiscard = null;
+  gameDiscards = [];
+  playerDrawnTile = null;
+  playerSelected = -1;
+  playerActions = [];
+  gameState = GAME_STATES.AI_TURN;
+
+  document.getElementById('game-table').style.display='grid';
+  document.getElementById('btn-start-game').style.display='none';
+  sortAllHands();
+  renderGameBoard();
+  setTimeout(()=>aiTurn(0), 600);
+}
+
+function sortAllHands(){
+  for(const p of gamePlayers){
+    p.hand.sort((a,b)=>{
+      const ta=TILES[a], tb=TILES[b];
+      if(ta.type!==tb.type) return ta.type==='suit'?-1:ta.type==='wind'?(tb.type==='dragon'?-1:1):1;
+      if(ta.type==='suit'){if(ta.suit!==tb.suit)return ta.suit-tb.suit;return ta.num-tb.num;}
+      return ta.num-tb.num;
+    });
+  }
+}
+
+function renderGameBoard(){
+  const me = gamePlayers[2]; // West = human
+
+  // Player hand
+  const ph=document.getElementById('player-hand');
+  ph.innerHTML = me.hand.map((tid,i)=>{
+    const t=TILES[tid];
+    const sel = (playerSelected===i && gameState===GAME_STATES.PLAYER_TURN) ? ' selected-tile' : '';
+    return `<div class="game-tile ${t.cls}${sel}" onclick="playerClickTile(${i})">${t.emoji}</div>`;
+  }).join('');
+
+  // Drawn tile
+  const pd=document.getElementById('player-drawn');
+  if(playerDrawnTile!==null){
+    const t=TILES[playerDrawnTile];
+    pd.style.display='block';
+    pd.innerHTML=`<div class="game-drawn ${t.cls}">${t.emoji}</div>`;
+  }else{
+    pd.style.display='none';
+  }
+
+  // Opponents
+  const sides=['top','right','left'];
+  const idxs=[0,1,3];
+  for(let s=0;s<3;s++){
+    const opp=gamePlayers[idxs[s]];
+    const tn=document.getElementById('opp-tiles-'+sides[s]);
+    tn.innerHTML = opp.hand.map(()=>`<div class="mini-tile"></div>`).join('');
+    // Show melds
+    const tm=document.getElementById('opp-melds-'+sides[s]);
+    tm.innerHTML = opp.melds.map(m=>{
+      const tiles=m.tiles.map(tid=>TILES[tid].emoji).join('');
+      return `<div class="game-meld"><span>${tiles}</span></div>`;
+    }).join('');
+    // Highlight current player
+    const nameEl=document.getElementById('opp-name-'+sides[s]);
+    nameEl.innerHTML = opp.name + (gameCurrentPlayer===idxs[s]?' ⬅':'');
+  }
+  // My name
+  document.querySelector('#game-bottom .game-player-name').innerHTML =
+    t('playerLabel') + (gameCurrentPlayer===2?' ⬅':'');
+
+  // Discards
+  const dd=document.getElementById('game-discards');
+  dd.innerHTML = gameDiscards.map(tid=>{
+    const t=TILES[tid];
+    return `<div class="game-dtile ${t.cls}">${t.emoji}</div>`;
+  }).join('') || `<span style="color:var(--text2);font-size:0.85rem">${t('discardHint')}</span>`;
+
+  // Info
+  document.getElementById('game-info').textContent = t('tilesLeft').replace('{n}',gameWall.length);
+
+  // Actions
+  renderActions();
+}
+
+function renderActions(){
+  const ac=document.getElementById('game-actions');
+  if(gameState===GAME_STATES.PLAYER_TURN && playerDrawnTile!==null){
+    ac.innerHTML = `<span style="color:var(--text2);font-size:0.85rem">${t('discardHint2')}</span>`;
+  }else if(gameState===GAME_STATES.ACTION_CHOICE){
+    let btns='';
+    if(playerActions.includes('win')) btns+=`<button class="btn btn-primary" onclick="playerAction('win')">${t('btnWin')}</button>`;
+    if(playerActions.includes('pung')) btns+=`<button class="btn btn-primary" onclick="playerAction('pung')">${t('btnPung')}</button>`;
+    if(playerActions.includes('chow')) btns+=`<button class="btn btn-primary" onclick="playerAction('chow')">${t('btnChow')}</button>`;
+    if(playerActions.includes('kong')) btns+=`<button class="btn btn-primary" onclick="playerAction('kong')">${t('btnKong')}</button>`;
+    btns+=`<button class="btn btn-outline" onclick="playerAction('pass')">${t('btnPass')}</button>`;
+    ac.innerHTML=btns;
+  }else{
+    ac.innerHTML='';
+  }
+}
+
+function playerClickTile(idx){
+  if(gameState!==GAME_STATES.PLAYER_TURN) return;
+  if(playerDrawnTile===null){
+    // Draw phase - click to draw
+    drawTile();
+    return;
+  }
+  // Discard phase - select tile to discard
+  playerSelected = idx;
+  renderGameBoard();
+  // Discard after a brief moment so user sees the selection
+  setTimeout(()=>{
+    if(playerSelected===idx){ // still selected
+      discardTile(idx);
+    }
+  },400);
+}
+
+function drawTile(){
+  if(gameWall.length===0){endGame(-1);return;}
+  playerDrawnTile = gameWall.pop();
+  gameState = GAME_STATES.PLAYER_TURN;
+  renderGameBoard();
+  // Check if can win (tsumo)
+  if(checkHandWin(gamePlayers[2].hand.concat([playerDrawnTile]))){
+    // Auto-notify but player still needs to discard first (they can keep drawn tile)
+  }
+}
+
+function discardTile(handIdx){
+  const me = gamePlayers[2];
+  let discardedId;
+  if(playerDrawnTile!==null){
+    // Player chose a tile from hand - that's the discard
+    discardedId = me.hand[handIdx];
+    // Remove from hand, add drawn tile
+    me.hand.splice(handIdx,1);
+    me.hand.push(playerDrawnTile);
+    sortAllHands();
+  }else{
+    discardedId = me.hand[handIdx];
+    me.hand.splice(handIdx,1);
+  }
+  playerDrawnTile = null;
+  playerSelected = -1;
+  gameLastDiscard = {tileId: discardedId, fromPlayer: 2};
+  gameDiscards.push(discardedId);
+  gameState = GAME_STATES.AI_TURN;
+  renderGameBoard();
+
+  // Check if any AI can pung/chow/kong/win
+  if(checkAllResponses(2)) return; // handled by action choice
+
+  // Next player's turn
+  gameCurrentPlayer = (2+1)%4;
+  setTimeout(()=>aiTurn(gameCurrentPlayer), 500);
+}
+
+function checkAllResponses(fromPlayer){
+  const discardedId = gameLastDiscard.tileId;
+  const discardedTile = TILES[discardedId];
+
+  // Check in turn order starting from next player
+  for(let i=1;i<=3;i++){
+    const pIdx = (fromPlayer + i) % 4;
+    const p = gamePlayers[pIdx];
+    if(p.isHuman) continue; // handled separately
+
+    // Check win
+    if(checkHandWin(p.hand.concat([discardedId]))){
+      gameCurrentPlayer = pIdx;
+      if(pIdx===2){
+        offerPlayerActions(discardedId);
+        return true;
+      }else{
+        setTimeout(()=>{p.hand.push(discardedId); endGame(pIdx);}, 400);
+        return true;
+      }
+    }
+  }
+
+  // Check pung/kong/chow for next player only (in real mahjong, chow is only from previous)
+  const nextP = (fromPlayer + 1) % 4;
+  const np = gamePlayers[nextP];
+  if(!np.isHuman){
+    const actions = getAIActions(np, discardedId, fromPlayer);
+    if(actions.length>0){
+      gameCurrentPlayer = nextP;
+      const action = actions[0]; // AI picks best action
+      setTimeout(()=>executeAIAction(np, nextP, action, discardedId), 400);
+      return true;
+    }
+  }else{
+    const actions = getAIActions(np, discardedId, fromPlayer);
+    if(actions.length>0){
+      gameCurrentPlayer = 2;
+      offerPlayerActions(discardedId);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function offerPlayerActions(discardedId){
+  const me = gamePlayers[2];
+  playerActions = [];
+  const dt = TILES[discardedId];
+
+  // Check win
+  if(checkHandWin(me.hand.concat([discardedId]))) playerActions.push('win');
+
+  // Check pung (2+ identical in hand)
+  const sameInHand = me.hand.filter(tid=>TILES[tid].key===dt.key).length;
+  if(sameInHand>=2) playerActions.push('pung');
+
+  // Check kong (3 identical)
+  if(sameInHand>=3) playerActions.push('kong');
+
+  // Check chow (only from previous player = 3, North)
+  if(gameLastDiscard.fromPlayer===3 && dt.type==='suit'){
+    const s=dt.suit, n=dt.num;
+    const has = (sn, nn)=>me.hand.some(tid=>{
+      const t=TILES[tid]; return t.type==='suit'&&t.suit===sn&&t.num===nn;
+    });
+    if(has(s,n+1)&&has(s,n+2)) playerActions.push('chow');
+    if(has(s,n-1)&&has(s,n+1)) playerActions.push('chow');
+    if(has(s,n-2)&&has(s,n-1)) playerActions.push('chow');
+  }
+
+  if(playerActions.length>0){
+    gameState = GAME_STATES.ACTION_CHOICE;
+    renderGameBoard();
+  }else{
+    // No actions, next player
+    gameCurrentPlayer = (2+1)%4;
+    gameState = GAME_STATES.AI_TURN;
+    renderGameBoard();
+    setTimeout(()=>aiTurn(gameCurrentPlayer), 500);
+  }
+}
+
+function playerAction(action){
+  if(gameState!==GAME_STATES.ACTION_CHOICE) return;
+  const me = gamePlayers[2];
+  const discardedId = gameLastDiscard.tileId;
+  const dt = TILES[discardedId];
+
+  if(action==='win'){
+    me.hand.push(discardedId);
+    gameDiscards.pop(); // remove from discard pool
+    endGame(2);
+    return;
+  }
+  if(action==='pung'){
+    // Remove 2 identical from hand, add all 3 as meld
+    let removed=0;
+    me.hand = me.hand.filter(tid=>{
+      if(removed<2 && TILES[tid].key===dt.key){removed++;return false;}
+      return true;
+    });
+    me.melds.push({type:'pung',tiles:[discardedId,discardedId,discardedId]});
+    gameDiscards.pop();
+  }
+  if(action==='kong'){
+    let removed=0;
+    me.hand = me.hand.filter(tid=>{
+      if(removed<3 && TILES[tid].key===dt.key){removed++;return false;}
+      return true;
+    });
+    me.melds.push({type:'kong',tiles:[discardedId,discardedId,discardedId,discardedId]});
+    gameDiscards.pop();
+    // Draw replacement tile
+    if(gameWall.length>0) me.hand.push(gameWall.pop());
+  }
+  if(action==='chow'){
+    const s=dt.suit, n=dt.num;
+    // Find which chow pattern works
+    const patterns=[[n,n+1,n+2],[n-1,n,n+1],[n-2,n-1,n]];
+    for(const pat of patterns){
+      if(pat[0]<1||pat[2]>9) continue;
+      const needed = pat.filter(x=>x!==n);
+      const found=[];
+      me.hand = me.hand.filter(tid=>{
+        const t=TILES[tid];
+        if(found.length<2 && t.type==='suit' && t.suit===s && needed.includes(t.num) && !found.includes(t.num)){
+          found.push(t.num);
+          return false;
+        }
+        return true;
+      });
+      if(found.length===2){
+        const allTiles = pat.map(num=>{
+          if(num===n) return discardedId;
+          return TILES.find(t=>t.type==='suit'&&t.suit===s&&t.num===num).id;
+        });
+        me.melds.push({type:'chow',tiles:allTiles});
+        gameDiscards.pop();
+        break;
+      }
+    }
+  }
+  if(action==='pass'){
+    // fall through
+  }
+
+  playerActions=[];
+  gameState=GAME_STATES.AI_TURN;
+  gameCurrentPlayer=(2+1)%4;
+  sortAllHands();
+  renderGameBoard();
+  setTimeout(()=>aiTurn(gameCurrentPlayer), 500);
+}
+
+function getAIActions(player, discardedId, fromPlayer){
+  const actions=[];
+  const dt=TILES[discardedId];
+  const sameInHand=player.hand.filter(tid=>TILES[tid].key===dt.key).length;
+
+  if(checkHandWin(player.hand.concat([discardedId]))) actions.push('win');
+  if(sameInHand>=3) actions.push('kong');
+  if(sameInHand>=2) actions.push('pung');
+  if(dt.type==='suit' && (fromPlayer+1)%4===gamePlayers.indexOf(player)){
+    const s=dt.suit,n=dt.num;
+    const has=(sn,nn)=>player.hand.some(tid=>{const t=TILES[tid];return t.type==='suit'&&t.suit===sn&&t.num===nn;});
+    if(has(s,n+1)&&has(s,n+2)) actions.push('chow');
+    if(has(s,n-1)&&has(s,n+1)) actions.push('chow');
+    if(has(s,n-2)&&has(s,n-1)) actions.push('chow');
+  }
+  return actions;
+}
+
+function executeAIAction(player, pIdx, action, discardedId){
+  const dt=TILES[discardedId];
+  if(action==='win'){
+    player.hand.push(discardedId);
+    gameDiscards.pop();
+    endGame(pIdx);
+    return;
+  }
+  if(action==='pung'){
+    let r=0;
+    player.hand=player.hand.filter(tid=>{if(r<2&&TILES[tid].key===dt.key){r++;return false;}return true;});
+    player.melds.push({type:'pung',tiles:[discardedId,discardedId,discardedId]});
+    gameDiscards.pop();
+  }
+  if(action==='kong'){
+    let r=0;
+    player.hand=player.hand.filter(tid=>{if(r<3&&TILES[tid].key===dt.key){r++;return false;}return true;});
+    player.melds.push({type:'kong',tiles:[discardedId,discardedId,discardedId,discardedId]});
+    gameDiscards.pop();
+    if(gameWall.length>0) player.hand.push(gameWall.pop());
+  }
+  if(action==='chow'){
+    const s=dt.suit,n=dt.num;
+    const patterns=[[n,n+1,n+2],[n-1,n,n+1],[n-2,n-1,n]];
+    for(const pat of patterns){
+      if(pat[0]<1||pat[2]>9) continue;
+      const needed=pat.filter(x=>x!==n);
+      const found=[];
+      player.hand=player.hand.filter(tid=>{
+        const t=TILES[tid];
+        if(found.length<2&&t.type==='suit'&&t.suit===s&&needed.includes(t.num)&&!found.includes(t.num)){found.push(t.num);return false;}
+        return true;
+      });
+      if(found.length===2){
+        const allTiles=pat.map(num=>num===n?discardedId:TILES.find(t=>t.type==='suit'&&t.suit===s&&t.num===num).id);
+        player.melds.push({type:'chow',tiles:allTiles});
+        gameDiscards.pop();break;
+      }
+    }
+  }
+
+  sortAllHands();
+  renderGameBoard();
+  // AI still needs to discard one tile
+  setTimeout(()=>aiDiscard(player,pIdx), 500);
+}
+
+function aiTurn(pIdx){
+  if(gameState===GAME_STATES.GAME_OVER) return;
+  const player=gamePlayers[pIdx];
+  if(player.isHuman){
+    // Player's turn
+    gameCurrentPlayer=2;
+    gameState=GAME_STATES.PLAYER_TURN;
+    playerDrawnTile=null;
+    playerSelected=-1;
+    document.getElementById('game-info').textContent=t('yourTurn');
+    renderGameBoard();
+    return;
+  }
+
+  gameCurrentPlayer=pIdx;
+  document.getElementById('game-info').textContent=t('aiThinking').replace('{name}',player.name);
+  renderGameBoard();
+
+  // AI draws
+  if(gameWall.length===0){endGame(-1);return;}
+  const drawnId=gameWall.pop();
+  player.hand.push(drawnId);
+
+  // Check win (tsumo)
+  if(checkHandWin(player.hand)){
+    setTimeout(()=>endGame(pIdx), 500);
+    return;
+  }
+
+  // AI discards - find worst tile
+  setTimeout(()=>aiDiscard(player,pIdx), 600);
+}
+
+function aiDiscard(player,pIdx){
+  // Simple AI: discard tile least likely to form meld
+  // Priority: discard isolated tiles (no neighbors, no pair)
+  const hand=player.hand.slice();
+  sortAllHands();
+
+  // Score each tile: higher = keep
+  const scores=hand.map((tid,i)=>{
+    const t=TILES[tid];
+    let score=0;
+    // Pair bonus
+    const sameCount=hand.filter(ot=>TILES[ot].key===t.key).length;
+    if(sameCount>=3) score+=10;
+    else if(sameCount===2) score+=6;
+
+    // Adjacent bonus (suits only)
+    if(t.type==='suit'){
+      const has=(sn,nn)=>hand.some(ot=>{const o=TILES[ot];return o.type==='suit'&&o.suit===sn&&o.num===nn;});
+      // Check neighbors
+      let neighbors=0;
+      if(has(t.suit,t.num-1)) neighbors++;
+      if(has(t.suit,t.num+1)) neighbors++;
+      if(has(t.suit,t.num-2)) neighbors+=0.5;
+      if(has(t.suit,t.num+2)) neighbors+=0.5;
+      score+=neighbors*3;
+    }else{
+      // Honors: keep if pair or triplet
+      score+=sameCount*2;
+    }
+    return {idx:i, score};
+  });
+
+  scores.sort((a,b)=>a.score-b.score);
+  const discardIdx=scores[0].idx;
+  const discardedId=hand[discardIdx];
+  player.hand.splice(discardIdx,1);
+  gameLastDiscard={tileId:discardedId,fromPlayer:pIdx};
+  gameDiscards.push(discardedId);
+  sortAllHands();
+  renderGameBoard();
+
+  // Check if other players can respond
+  if(checkAllResponses(pIdx)) return;
+
+  // Next player
+  gameCurrentPlayer=(pIdx+1)%4;
+  gameState=GAME_STATES.AI_TURN;
+  setTimeout(()=>aiTurn(gameCurrentPlayer), 500);
+}
+
+function checkHandWin(hand){
+  if(hand.length!==14) return false;
+  const count=new Map();
+  hand.forEach(tid=>{
+    const t=TILES[tid];
+    const key=t.type==='suit'?'s'+t.suit+'n'+t.num:'t'+t.type+'v'+t.num;
+    count.set(key,(count.get(key)||0)+1);
+  });
+  const keys=Array.from(count.keys());
+  for(const pk of keys){
+    if(count.get(pk)<2) continue;
+    const r=new Map(count);
+    const v=r.get(pk);
+    if(v===2)r.delete(pk);else r.set(pk,v-2);
+    if(canFormMelds(r,4)) return true;
+  }
+  return false;
+}
+
+function endGame(winnerIdx){
+  gameState=GAME_STATES.GAME_OVER;
+  const info=document.getElementById('game-info');
+  if(winnerIdx===-1){
+    info.textContent=t('drawGame');
+  }else if(winnerIdx===2){
+    info.textContent=t('youWin');
+  }else{
+    info.textContent=t('aiWin').replace('{name}',gamePlayers[winnerIdx].name);
+  }
+  document.getElementById('player-drawn').style.display='none';
+  document.getElementById('game-actions').innerHTML='';
+  document.getElementById('btn-start-game').style.display='inline-block';
+  document.getElementById('btn-start-game').textContent='🔄 再来一局';
+  renderGameBoard();
+}
+
+function startGame(){
+  initGame();
+}
 </script>
 </body>
+    navPlay: '🎮 对局',
+    playHint: '与 3 个 AI 对手进行一局标准麻将！你是西家（玩家），点击开始后轮流摸牌打牌，率先胡牌者胜。',
+    btnStartGame: '🎮 开始新对局',
+    discardHint: '弃牌区',
+    oppEast: '🤖 东家',
+    oppSouth: '🤖 南家',
+    oppWest: '🤖 西家',
+    oppNorth: '🤖 北家',
+    playerLabel: '🧑 你的手牌',
+    yourTurn: '轮到你了！请摸牌或操作',
+    drawHint: '← 点击摸牌',
+    discardHint2: '选择要打出的牌（点手牌）',
+    btnPung: '碰',
+    btnChow: '吃',
+    btnKong: '杠',
+    btnWin: '胡！',
+    btnPass: '过',
+    youWin: '🎉 你胡了！恭喜！',
+    aiWin: '😞 {name} 胡了！',
+    drawGame: '🤝 荒庄 — 流局',
+    tilesLeft: '剩余 {n} 张',
+    aiThinking: '{name} 思考中...',
+    navPlay: '🎮 Play',
+    playHint: 'Play a standard mahjong game against 3 AI opponents! Draw and discard tiles to complete your hand first.',
+    btnStartGame: '🎮 Start New Game',
+    discardHint: 'Discard Pool',
+    oppEast: '🤖 East',
+    oppSouth: '🤖 South',
+    oppWest: '🤖 West',
+    oppNorth: '🤖 North',
+    playerLabel: '🧑 Your Hand',
+    yourTurn: 'Your turn! Draw or act',
+    drawHint: '← Click to draw',
+    discardHint2: 'Select a tile to discard',
+    btnPung: 'Pung',
+    btnChow: 'Chow',
+    btnKong: 'Kong',
+    btnWin: 'Win!',
+    btnPass: 'Pass',
+    youWin: '🎉 You Win! Congrats!',
+    aiWin: '😞 {name} wins!',
+    drawGame: '🤝 Draw Game',
+    tilesLeft: '{n} tiles left',
+    aiThinking: '{name} is thinking...',
+    navPlay: '🎮 Jouer',
+    playHint: 'Jouez une partie standard contre 3 adversaires IA ! Piochez et défaussez pour compléter votre main.',
+    btnStartGame: '🎮 Nouvelle Partie',
+    discardHint: 'Défausse',
+    oppEast: '🤖 Est',
+    oppSouth: '🤖 Sud',
+    oppWest: '🤖 Ouest',
+    oppNorth: '🤖 Nord',
+    playerLabel: '🧑 Votre Main',
+    yourTurn: 'À vous ! Piochez',
+    drawHint: '← Piocher',
+    discardHint2: 'Choisissez une tuile à jeter',
+    btnPung: 'Pung',
+    btnChow: 'Chow',
+    btnKong: 'Kong',
+    btnWin: 'Mahjong!',
+    btnPass: 'Passe',
+    youWin: '🎉 Vous avez gagné !',
+    aiWin: '😞 {name} a gagné !',
+    drawGame: '🤝 Match Nul',
+    tilesLeft: '{n} tuiles restantes',
+    aiThinking: '{name} réfléchit...',
+    navPlay: '🎮 Gioca',
+    playHint: 'Gioca una partita standard contro 3 avversari IA! Pesca e scarta per completare la tua mano.',
+    btnStartGame: '🎮 Nuova Partita',
+    discardHint: 'Scarti',
+    oppEast: '🤖 Est',
+    oppSouth: '🤖 Sud',
+    oppWest: '🤖 Ovest',
+    oppNorth: '🤖 Nord',
+    playerLabel: '🧑 La Tua Mano',
+    yourTurn: 'Tocca a te! Pesca',
+    drawHint: '← Pesca',
+    discardHint2: 'Scegli una tessera da scartare',
+    btnPung: 'Pung',
+    btnChow: 'Chow',
+    btnKong: 'Kong',
+    btnWin: 'Mahjong!',
+    btnPass: 'Passa',
+    youWin: '🎉 Hai vinto!',
+    aiWin: '😞 {name} ha vinto!',
+    drawGame: '🤝 Pareggio',
+    tilesLeft: '{n} tessere rimaste',
+    aiThinking: '{name} sta pensando...',
+    navPlay: '🎮 Jugar',
+    playHint: '¡Juega una partida estándar contra 3 oponentes IA! Roba y descarta fichas para completar tu mano.',
+    btnStartGame: '🎮 Nueva Partida',
+    discardHint: 'Descartes',
+    oppEast: '🤖 Este',
+    oppSouth: '🤖 Sur',
+    oppWest: '🤖 Oeste',
+    oppNorth: '🤖 Norte',
+    playerLabel: '🧑 Tu Mano',
+    yourTurn: '¡Tu turno! Roba',
+    drawHint: '← Robar',
+    discardHint2: 'Elige ficha para descartar',
+    btnPung: 'Pung',
+    btnChow: 'Chow',
+    btnKong: 'Kong',
+    btnWin: '¡Mahjong!',
+    btnPass: 'Pasar',
+    youWin: '🎉 ¡Ganaste!',
+    aiWin: '😞 ¡{name} ganó!',
+    drawGame: '🤝 Empate',
+    tilesLeft: '{n} fichas restantes',
+    aiThinking: '{name} está pensando...',
+    navPlay: '🎮 Spiel',
+    playHint: 'Spiele ein Standard-Mahjong gegen 3 KI-Gegner! Ziehe und wirf Steine ab, um deine Hand zu vervollständigen.',
+    btnStartGame: '🎮 Neues Spiel',
+    discardHint: 'Abwurfstapel',
+    oppEast: '🤖 Ost',
+    oppSouth: '🤖 Süd',
+    oppWest: '🤖 West',
+    oppNorth: '🤖 Nord',
+    playerLabel: '🧑 Deine Hand',
+    yourTurn: 'Du bist dran! Ziehe',
+    drawHint: '← Ziehen',
+    discardHint2: 'Wähle einen Stein zum Abwerfen',
+    btnPung: 'Pung',
+    btnChow: 'Chow',
+    btnKong: 'Kong',
+    btnWin: 'Mahjong!',
+    btnPass: 'Pass',
+    youWin: '🎉 Du hast gewonnen!',
+    aiWin: '😞 {name} hat gewonnen!',
+    drawGame: '🤝 Unentschieden',
+    tilesLeft: '{n} Steine übrig',
+    aiThinking: '{name} denkt nach...',
+    navPlay: '🎮 대국',
+    playHint: '3명의 AI 상대와 표준 마작 대국을 즐기세요! 패를 뽑고 버리며 먼저 오름을 노리세요.',
+    btnStartGame: '🎮 새 대국 시작',
+    discardHint: '버림패',
+    oppEast: '🤖 동가',
+    oppSouth: '🤖 남가',
+    oppWest: '🤖 서가',
+    oppNorth: '🤖 북가',
+    playerLabel: '🧑 당신의 패',
+    yourTurn: '당신 차례! 패를 뽑으세요',
+    drawHint: '← 패 뽑기',
+    discardHint2: '버릴 패를 선택하세요',
+    btnPung: '퐁',
+    btnChow: '치',
+    btnKong: '깡',
+    btnWin: '론!',
+    btnPass: '패스',
+    youWin: '🎉 당신이 이겼습니다!',
+    aiWin: '😞 {name}님이 이겼습니다!',
+    drawGame: '🤝 유국',
+    tilesLeft: '{n}장 남음',
+    aiThinking: '{name}님 생각 중...',
+    navPlay: '🎮 対局',
+    playHint: '3人のAI対戦相手と標準麻雀をプレイ！牌をツモ切りして、最初に和了りましょう。',
+    btnStartGame: '🎮 新規対局開始',
+    discardHint: '捨て牌',
+    oppEast: '🤖 東家',
+    oppSouth: '🤖 南家',
+    oppWest: '🤖 西家',
+    oppNorth: '🤖 北家',
+    playerLabel: '🧑 あなたの手牌',
+    yourTurn: 'あなたの番！ツモってください',
+    drawHint: '← ツモ',
+    discardHint2: '捨てる牌を選んでください',
+    btnPung: 'ポン',
+    btnChow: 'チー',
+    btnKong: 'カン',
+    btnWin: 'ロン！',
+    btnPass: 'パス',
+    youWin: '🎉 あなたの勝ちです！',
+    aiWin: '😞 {name}の勝ちです！',
+    drawGame: '🤝 流局',
+    tilesLeft: '残り{n}枚',
+    aiThinking: '{name} 考え中...',
 </html>
